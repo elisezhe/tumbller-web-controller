@@ -1,0 +1,36 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run Clang-Tidy",
+      "type": "shell",
+      "command": "clang-tidy",
+      "args": [
+        "src/*.cpp",
+        "src/*.ino",
+        "include/*.h",
+        "lib/*/*.h",
+        "lib/*/*.cpp",
+        "--",
+        "-Iinclude",
+        "-Ilib",
+        "-I.pio/libdeps/uno",
+        "-std=c++11",
+        "-DARDUINO=10805",
+        "-DARDUINO_ARCH_AVR",
+        "-D__AVR_ATmega328P__"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": "$gcc"
+    }
+  ]
+}

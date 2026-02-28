@@ -1,0 +1,10 @@
+{
+    "C_Cpp.clang_format_style": "file",
+    "C_Cpp.clang_format_fallbackStyle": "Google",
+    "editor.formatOnSave": true,
+    "C_Cpp.formatting": "clangFormat",
+    "C_Cpp.intelliSenseEngine": "default",
+    "C_Cpp.errorSquiggles": "disabled",
+    "C_Cpp.codeAnalysis.clangTidy.enabled": false,
+    "C_Cpp.autocomplete": "default",
+}
