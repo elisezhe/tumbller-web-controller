@@ -33,12 +33,13 @@ Tumbller::Tumbller()
 
 void Tumbller::setup() {
   Serial.begin(9600);
+  motors.init();
   ultrasonic.init(leds);
   input.init();
   leds.init(abortCheck);
   voltage.init(leds);
   start_prev_time = millis();
-  car.init(input);
+  car.init(motors);
 }
 
 void Tumbller::loop() {
@@ -60,7 +61,7 @@ void Tumbller::loop() {
   if (millis() - start_time < 10) {
     state.function_mode = IDLE;
     state.motion_mode = STOP;
-    car.stop();
+    motors.stop();
   }
 
   if (millis() - start_time == 2000) {
@@ -202,13 +203,13 @@ void Tumbller::setMotionState() {
       if (millis() - start_prev_time > 2000) {
         if (car.balance_angle_min <= car.kalmanfilter_angle &&
             car.kalmanfilter_angle <= car.balance_angle_max) {
-          car.car_speed_integeral = 0;
+          car.car_speed_integral = 0;
           car.setting_car_speed = 0;
           state.motion_mode = STANDBY;
           leds.lightOff();
         } else {
           state.motion_mode = STOP;
-          car.stop();
+          motors.stop();
           leds.solid(StatusLeds::Color(255, 0, 0));
         }
       }
@@ -294,10 +295,12 @@ void Tumbller::keyEventHandle() {
       case '4':
         state.function_mode = IDLE;
         state.motion_mode = STOP;
-        car.back(110);
+        car.suppress_motor_output = true;
+        motors.back(110);
         delay((car.kalmanfilter_angle - 30) * (car.kalmanfilter_angle - 30) /
               8);
-        car.stop();
+        motors.stop();
+        car.suppress_motor_output = false;
         start_prev_time = millis();
         leds.solid(StatusLeds::Color(255, 0, 0));
         break;

@@ -5,6 +5,7 @@
 
 #include "BalanceCar.h"
 #include "InputHandler.h"
+#include "MotorDriver.h"
 #include "StatusLeds.h"
 #include "UltrasonicSensor.h"
 #include "VoltageMon.h"
@@ -13,6 +14,7 @@ class Tumbller {
  public:
   CarState state;
   InputHandler input;
+  MotorDriver motors;
   BalanceCar car;
   StatusLeds leds;
   UltrasonicSensor ultrasonic;

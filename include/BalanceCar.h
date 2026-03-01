@@ -7,27 +7,28 @@
 #include "MPU6050.h"
 #include "mode.h"
 
-class InputHandler;
+class MotorDriver;
 
 class BalanceCar {
  public:
   BalanceCar(CarState& state);
-  void init(InputHandler& input);
-  void stop();
-  void forward(unsigned char speed);
-  void back(unsigned char speed);
+  void init(MotorDriver& motors);
 
   KalmanFilter kalmanfilter;
   float kalmanfilter_angle;
   char balance_angle_min;
   char balance_angle_max;
-  double car_speed_integeral;
+  double car_speed_integral;
   int setting_car_speed;
   int setting_turn_speed;
 
+  /// Set true while directly driving motors (e.g. self-right).
+  /// The balance ISR will skip motor output while this is set.
+  bool suppress_motor_output;
+
  private:
   CarState& state_;
-  InputHandler* input_;
+  MotorDriver* motors_;
   MPU6050 mpu_;
 
   double kp_balance_;

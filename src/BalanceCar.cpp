@@ -2,7 +2,7 @@
 
 #include "EnableInterruptWrapper.h"
 #include "I2Cdev.h"
-#include "InputHandler.h"
+#include "MotorDriver.h"
 #include "MsTimer2.h"
 #include "Pins.h"
 #include "Wire.h"
@@ -14,11 +14,12 @@ BalanceCar::BalanceCar(CarState& state)
       kalmanfilter_angle(0),
       balance_angle_min(-22),
       balance_angle_max(22),
-      car_speed_integeral(0),
+      car_speed_integral(0),
       setting_car_speed(0),
       setting_turn_speed(0),
+      suppress_motor_output(false),
       state_(state),
-      input_(nullptr),
+      motors_(nullptr),
       mpu_(),
       kp_balance_(55),
       kd_balance_(0.75),
@@ -47,17 +48,9 @@ BalanceCar::BalanceCar(CarState& state)
       pwm_right_(0) {
 }
 
-void BalanceCar::init(InputHandler& input) {
+void BalanceCar::init(MotorDriver& motors) {
   instance_ = this;
-  input_ = &input;
-
-  pinMode(AIN1, OUTPUT);
-  pinMode(BIN1, OUTPUT);
-  pinMode(PWMA_LEFT, OUTPUT);
-  pinMode(PWMB_RIGHT, OUTPUT);
-  pinMode(STBY_PIN, OUTPUT);
-
-  stop();
+  motors_ = &motors;
 
   Wire.begin();
   mpu_.initialize();
@@ -83,28 +76,6 @@ void BalanceCar::encoderLeftISR() {
 void BalanceCar::encoderRightISR() {
   if (instance_)
     instance_->encoder_count_right_a_++;
-}
-
-void BalanceCar::stop() {
-  digitalWrite(AIN1, HIGH);
-  digitalWrite(BIN1, LOW);
-  digitalWrite(STBY_PIN, HIGH);
-  analogWrite(PWMA_LEFT, 0);
-  analogWrite(PWMB_RIGHT, 0);
-}
-
-void BalanceCar::forward(unsigned char speed) {
-  digitalWrite(AIN1, 0);
-  digitalWrite(BIN1, 0);
-  analogWrite(PWMA_LEFT, speed);
-  analogWrite(PWMB_RIGHT, speed);
-}
-
-void BalanceCar::back(unsigned char speed) {
-  digitalWrite(AIN1, 1);
-  digitalWrite(BIN1, 1);
-  analogWrite(PWMA_LEFT, speed);
-  analogWrite(PWMB_RIGHT, speed);
 }
 
 void BalanceCar::balance() {
@@ -136,11 +107,11 @@ void BalanceCar::balance() {
     encoder_right_pulse_num_speed_ = 0;
     speed_filter_ = speed_filter_old_ * 0.7 + car_speed * 0.3;
     speed_filter_old_ = speed_filter_;
-    car_speed_integeral += speed_filter_;
-    car_speed_integeral += -setting_car_speed;
-    car_speed_integeral = constrain(car_speed_integeral, -3000, 3000);
+    car_speed_integral += speed_filter_;
+    car_speed_integral += -setting_car_speed;
+    car_speed_integral = constrain(car_speed_integral, -3000, 3000);
     speed_control_output_ =
-        -kp_speed_ * speed_filter_ - ki_speed_ * car_speed_integeral;
+        -kp_speed_ * speed_filter_ - ki_speed_ * car_speed_integral;
   }
 
   // Turn control
@@ -160,35 +131,19 @@ void BalanceCar::balance() {
       (kalmanfilter_angle < balance_angle_min ||
        balance_angle_max < kalmanfilter_angle)) {
     state_.motion_mode = STOP;
-    stop();
+    motors_->stop();
   }
 
   // Motor output
-  if (state_.motion_mode == STOP && input_->key_flag != '4') {
-    car_speed_integeral = 0;
+  if (state_.motion_mode == STOP) {
+    car_speed_integral = 0;
     setting_car_speed = 0;
     pwm_left_ = 0;
     pwm_right_ = 0;
-    stop();
-  } else if (state_.motion_mode == STOP) {
-    car_speed_integeral = 0;
-    setting_car_speed = 0;
-    pwm_left_ = 0;
-    pwm_right_ = 0;
+    if (!suppress_motor_output) {
+      motors_->stop();
+    }
   } else {
-    if (pwm_left_ < 0) {
-      digitalWrite(AIN1, 1);
-      analogWrite(PWMA_LEFT, -pwm_left_);
-    } else {
-      digitalWrite(AIN1, 0);
-      analogWrite(PWMA_LEFT, pwm_left_);
-    }
-    if (pwm_right_ < 0) {
-      digitalWrite(BIN1, 1);
-      analogWrite(PWMB_RIGHT, -pwm_right_);
-    } else {
-      digitalWrite(BIN1, 0);
-      analogWrite(PWMB_RIGHT, pwm_right_);
-    }
+    motors_->drive(pwm_left_, pwm_right_);
   }
 }
