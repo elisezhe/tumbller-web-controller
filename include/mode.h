@@ -1,15 +1,7 @@
 #ifndef MODE_H
 #define MODE_H
 
-enum FUNCTION_MODE {
-  IDLE,
-  IRREMOTE,
-  OBSTACLE,
-  FOLLOW,
-  BLUETOOTH,
-  FOLLOW2,
-};
-
+enum FUNCTION_MODE { IDLE, IRREMOTE, OBSTACLE, FOLLOW, BLUETOOTH, FOLLOW2 };
 enum MOTION_MODE {
   STANDBY,
   FORWARD,
@@ -17,10 +9,14 @@ enum MOTION_MODE {
   TURNLEFT,
   TURNRIGHT,
   STOP,
-  START,
+  START
 };
 
-extern FUNCTION_MODE function_mode;
-extern MOTION_MODE motion_mode;
+struct CarState {
+  FUNCTION_MODE function_mode;
+  MOTION_MODE motion_mode;
+  CarState() : function_mode(IDLE), motion_mode(START) {
+  }
+};
 
 #endif

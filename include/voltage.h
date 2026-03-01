@@ -3,10 +3,21 @@
 
 #include <Arduino.h>
 
-extern int low_voltage_flag;
-extern unsigned long vol_measure_time;
+#include "mode.h"
 
-void voltageInit();
-void voltageMeasure();
+class RGB;
+
+class VoltageMon {
+ public:
+  VoltageMon(CarState& state);
+  void init(RGB& rgb);
+  void measure();
+
+ private:
+  CarState& state_;
+  RGB* rgb_;
+  int low_voltage_flag_;
+  unsigned long vol_measure_time_;
+};
 
 #endif

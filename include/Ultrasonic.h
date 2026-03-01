@@ -1,56 +1,66 @@
-/*
- * @Description: In User Settings Edit
- * @Author: your name
- * @Date: 2019-10-08 09:35:07
- * @LastEditTime: 2019-10-10 14:24:57
- * @LastEditors: Please set LastEditors
- */
 #ifndef ULTRASONIC_H
 #define ULTRASONIC_H
 
 #include <Arduino.h>
 
-extern bool left_flag[10];
-extern unsigned char left_count_flag;
-extern unsigned char left_index;
-extern bool right_flag[10];
-extern unsigned char right_count_flag;
-extern unsigned char right_index;
+#include "mode.h"
 
-extern char measure_flag;
-extern double distance_value;
-extern unsigned long measure_prev_time;
-extern unsigned long get_distance_prev_time;
-extern char obstacle_avoidance_flag;
-extern unsigned long obstacle_avoidance_prev_time;
-extern int follow_flag;
-extern unsigned long follow_prev_time;
-extern long int turn_count;
+class RGB;
 
-extern unsigned long ir_send_time;
-extern unsigned char left_receive_flag;
-extern unsigned int left_count;
-extern unsigned long left_count_time;
-extern bool left_test_flag;
-extern bool left_is_obstacle;
+class UltrasonicSensor {
+ public:
+  UltrasonicSensor(CarState& state);
+  void init(RGB& rgb);
+  void checkObstacle();
+  void getDistance();
+  void obstacleAvoidanceMode();
+  void followMode();
+  void followMode2();
 
-extern unsigned char right_receive_flag;
-extern unsigned int right_count;
-extern unsigned long right_count_time;
-extern bool right_test_flag;
-extern bool right_is_obstacle;
+  char obstacle_avoidance_flag;
+  unsigned long obstacle_avoidance_prev_time;
+  int follow_flag;
+  unsigned long follow_prev_time;
+  double distance_value;
 
-void rightFilter(bool value);
-void leftFilter(bool value);
-void send38K(int pin);
-void leftReceive();
-void rightReceive();
-void ultrasonicInit();
-void checkObstacle();
-void obstacleAvoidanceMode();
-void followMode();
-void followMode2();
-void measureDistance();
-void getDistance();
+ private:
+  CarState& state_;
+  RGB* rgb_;
+
+  bool left_flag_[10];
+  unsigned char left_count_flag_;
+  unsigned char left_index_;
+  bool right_flag_[10];
+  unsigned char right_count_flag_;
+  unsigned char right_index_;
+
+  char measure_flag_;
+  unsigned long measure_prev_time_;
+  unsigned long get_distance_prev_time_;
+  long int turn_count_;
+
+  unsigned long ir_send_time_;
+  unsigned char left_receive_flag_;
+  unsigned int left_count_;
+  unsigned long left_count_time_;
+  bool left_is_obstacle_;
+
+  unsigned char right_receive_flag_;
+  unsigned int right_count_;
+  unsigned long right_count_time_;
+  bool right_is_obstacle_;
+
+  void rightFilter(bool value);
+  void leftFilter(bool value);
+  void send38K(int pin);
+  void measureDistanceHandler();
+  void leftReceiveHandler();
+  void rightReceiveHandler();
+
+  static UltrasonicSensor* instance_;
+  static void measureDistanceISR();
+  static void leftReceiveISR();
+  static void rightReceiveISR();
+};
 
 #endif

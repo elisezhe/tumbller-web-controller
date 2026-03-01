@@ -1,71 +1,113 @@
-/*
- * @Description: Ultrasonic and obstacle detection implementation
- */
 #include "Ultrasonic.h"
 
 #include "EnableInterruptWrapper.h"
 #include "Pins.h"
 #include "Rgb.h"
-#include "mode.h"
 
-bool left_flag[10] = {false};
-unsigned char left_count_flag = 0;
-unsigned char left_index = 0;
-bool right_flag[10] = {false};
-unsigned char right_count_flag = 0;
-unsigned char right_index = 0;
+UltrasonicSensor* UltrasonicSensor::instance_ = nullptr;
 
-char measure_flag = 0;
-double distance_value = 0;
-unsigned long measure_prev_time = 0;
-unsigned long get_distance_prev_time = 0;
-char obstacle_avoidance_flag = 0;
-unsigned long obstacle_avoidance_prev_time = 0;
-int follow_flag = 0;
-unsigned long follow_prev_time = 0;
-long int turn_count = 0;
-
-unsigned long ir_send_time = 0;
-unsigned char left_receive_flag = 0;
-unsigned int left_count = 0;
-unsigned long left_count_time = 0;
-bool left_test_flag = false;
-bool left_is_obstacle = false;
-
-unsigned char right_receive_flag = 0;
-unsigned int right_count = 0;
-unsigned long right_count_time = 0;
-bool right_test_flag = false;
-bool right_is_obstacle = false;
-
-void rightFilter(bool value) {
-  if (right_flag[right_index])
-    right_count_flag--;
-  if (value)
-    right_count_flag++;
-  right_flag[right_index] = value;
-  right_index++;
-  if (right_index >= 10)
-    right_index = 0;
+UltrasonicSensor::UltrasonicSensor(CarState& state)
+    : obstacle_avoidance_flag(0),
+      obstacle_avoidance_prev_time(0),
+      follow_flag(0),
+      follow_prev_time(0),
+      distance_value(0),
+      state_(state),
+      rgb_(nullptr),
+      left_count_flag_(0),
+      left_index_(0),
+      right_count_flag_(0),
+      right_index_(0),
+      measure_flag_(0),
+      measure_prev_time_(0),
+      get_distance_prev_time_(0),
+      turn_count_(0),
+      ir_send_time_(0),
+      left_receive_flag_(0),
+      left_count_(0),
+      left_count_time_(0),
+      left_is_obstacle_(false),
+      right_receive_flag_(0),
+      right_count_(0),
+      right_count_time_(0),
+      right_is_obstacle_(false) {
+  memset(left_flag_, 0, sizeof(left_flag_));
+  memset(right_flag_, 0, sizeof(right_flag_));
 }
 
-void leftFilter(bool value) {
-  if (left_flag[left_index])
-    left_count_flag--;
-  if (value)
-    left_count_flag++;
-  left_flag[left_index] = value;
-  left_index++;
-  if (left_index >= 10)
-    left_index = 0;
+void UltrasonicSensor::init(RGB& rgb) {
+  instance_ = this;
+  rgb_ = &rgb;
+  pinMode(ECHO_PIN, INPUT);
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(IR_SEND_PIN, OUTPUT);
+  pinMode(LEFT_RECEIVE_PIN, INPUT_PULLUP);
+  pinMode(RIGHT_RECEIVE_PIN, INPUT_PULLUP);
+  enableInterrupt(LEFT_RECEIVE_PIN, leftReceiveISR, FALLING);
+  enableInterrupt(RIGHT_RECEIVE_PIN, rightReceiveISR, FALLING);
 }
 
-/**
- * @brief Send 40 pulses at 38KHz
- *
- * @param pin Pin to generate pulses on
- */
-void send38K(int pin) {
+void UltrasonicSensor::measureDistanceISR() {
+  if (instance_)
+    instance_->measureDistanceHandler();
+}
+
+void UltrasonicSensor::leftReceiveISR() {
+  if (instance_)
+    instance_->leftReceiveHandler();
+}
+
+void UltrasonicSensor::rightReceiveISR() {
+  if (instance_)
+    instance_->rightReceiveHandler();
+}
+
+void UltrasonicSensor::measureDistanceHandler() {
+  if (measure_flag_ == 0) {
+    measure_prev_time_ = micros();
+    attachPinChangeInterrupt(ECHO_PIN, measureDistanceISR, FALLING);
+    measure_flag_ = 1;
+  } else if (measure_flag_ == 1) {
+    measure_flag_ = 2;
+    distance_value = (micros() - measure_prev_time_) / 58.2;
+    if (distance_value > 600)
+      distance_value = 600;
+  }
+}
+
+void UltrasonicSensor::leftReceiveHandler() {
+  left_count_++;
+}
+
+void UltrasonicSensor::rightReceiveHandler() {
+  right_count_++;
+}
+
+void UltrasonicSensor::rightFilter(bool value) {
+  right_flag_[right_index_] = value;
+  right_index_++;
+  if (right_index_ >= 10)
+    right_index_ = 0;
+  right_count_flag_ = 0;
+  for (unsigned char i = 0; i < 10; i++) {
+    if (right_flag_[i])
+      right_count_flag_++;
+  }
+}
+
+void UltrasonicSensor::leftFilter(bool value) {
+  left_flag_[left_index_] = value;
+  left_index_++;
+  if (left_index_ >= 10)
+    left_index_ = 0;
+  left_count_flag_ = 0;
+  for (unsigned char i = 0; i < 10; i++) {
+    if (left_flag_[i])
+      left_count_flag_++;
+  }
+}
+
+void UltrasonicSensor::send38K(int pin) {
   for (int i = 0; i < 39; i++) {
     digitalWrite(pin, LOW);
     delayMicroseconds(9);
@@ -74,278 +116,137 @@ void send38K(int pin) {
   }
 }
 
-/**
- * @brief Receive pin interrupt service routines
- */
-void leftReceive() {
-  if (left_receive_flag == 0) {
-    left_receive_flag = 1;
-    enableInterrupt(LEFT_RECEIVE_PIN, leftReceive, RISING);
-  } else if (left_receive_flag == 1) {
-    left_count++;
-    left_receive_flag = 0;
-    enableInterrupt(LEFT_RECEIVE_PIN, leftReceive, FALLING);
-  }
-}
-
-void rightReceive() {
-  if (right_receive_flag == 0) {
-    right_receive_flag = 1;
-    enableInterrupt(RIGHT_RECEIVE_PIN, rightReceive, RISING);
-  } else if (right_receive_flag == 1) {
-    right_count++;
-    right_receive_flag = 0;
-    enableInterrupt(RIGHT_RECEIVE_PIN, rightReceive, FALLING);
-  }
-}
-
-void ultrasonicInit() {
-  pinMode(ECHO_PIN, INPUT);
-  pinMode(TRIG_PIN, OUTPUT);
-  pinMode(IR_SEND_PIN, OUTPUT);
-  pinMode(LEFT_RECEIVE_PIN, INPUT_PULLUP);
-  pinMode(RIGHT_RECEIVE_PIN, INPUT_PULLUP);
-  enableInterrupt(LEFT_RECEIVE_PIN, leftReceive, FALLING);
-  enableInterrupt(RIGHT_RECEIVE_PIN, rightReceive, FALLING);
-}
-
-void checkObstacle() {
-  if (millis() - ir_send_time > 15) {
-    send38K(IR_SEND_PIN);
-    ir_send_time = millis();
-  }
-
-  if (millis() - left_count_time > 50) {
-    if (left_count >= 3) {
-      left_is_obstacle = true;
-      leftFilter(true);
-    } else {
-      left_is_obstacle = false;
-      leftFilter(false);
-    }
-
-    if (left_count_flag >= 5) {
-      left_is_obstacle = true;
-    } else {
-      left_is_obstacle = false;
-    }
-
-    left_count = 0;
-    left_count_time = millis();
-  }
-
-  if (millis() - right_count_time > 50) {
-    if (right_count >= 3) {
-      rightFilter(true);
-    } else {
-      rightFilter(false);
-    }
-
-    if (right_count_flag >= 5) {
-      right_is_obstacle = true;
-    } else {
-      right_is_obstacle = false;
-    }
-
-    right_count = 0;
-    right_count_time = millis();
-  }
-}
-
-void obstacleAvoidanceMode() {
-  unsigned int super_min = 3;
-  unsigned int distance_min = 10;
-  unsigned int distance_max = 45;
-  unsigned int super_max = 400;
-
-  if (left_is_obstacle && right_is_obstacle) {
-    if (distance_value >= distance_min && distance_value <= distance_max) {
-      if (turn_count >= 0) {
-        motion_mode = TURNRIGHT;
-        rgb.flashYellowColorRight();
-        turn_count++;
-      } else {
-        motion_mode = TURNLEFT;
-        rgb.flashYellowColorLeft();
-        turn_count--;
-      }
-    } else {
-      motion_mode = BACKWARD;
-      rgb.flashYellowColorback();
-    }
-  } else if (left_is_obstacle && !right_is_obstacle) {
-    motion_mode = TURNRIGHT;
-    rgb.flashYellowColorRight();
-    turn_count++;
-  } else if (!left_is_obstacle && right_is_obstacle) {
-    motion_mode = TURNLEFT;
-    rgb.flashYellowColorLeft();
-    turn_count--;
-  } else {
-    switch (obstacle_avoidance_flag) {
-      case 0:
-        if (distance_value < distance_max || distance_value > super_max) {
-          obstacle_avoidance_flag = 1;
-          motion_mode = STANDBY;
-          rgb.brightYellowColor();
-        } else {
-          motion_mode = FORWARD;
-          rgb.flashYellowColorFront();
-        }
-        break;
-      case 1:
-        if (distance_value >= distance_max && distance_value <= super_max) {
-          obstacle_avoidance_flag = 0;
-          motion_mode = FORWARD;
-          rgb.flashYellowColorFront();
-        } else if (distance_value >= super_min &&
-                   distance_value <= distance_min) {
-          motion_mode = BACKWARD;
-          rgb.flashYellowColorback();
-        } else {
-          if (turn_count >= 0) {
-            motion_mode = TURNRIGHT;
-            rgb.flashYellowColorRight();
-            turn_count++;
-          } else {
-            motion_mode = TURNLEFT;
-            rgb.flashYellowColorLeft();
-            turn_count--;
-          }
-        }
-        break;
-      default:
-        break;
-    }
-  }
-}
-
-void followMode() {
-  unsigned int distance_min = 3;
-  unsigned int distance_max = 35;
-
-  switch (follow_flag) {
-    case 0:
-      if (millis() - follow_prev_time < 500) {
-        motion_mode = STANDBY;
-        rgb.brightGreenColor();
-      } else if (millis() - follow_prev_time >= 500) {
-        if (left_is_obstacle || right_is_obstacle) {
-          follow_flag = 1;
-        } else {
-          if (distance_value > distance_min && distance_value < distance_max) {
-            follow_flag = 2;
-          } else {
-            follow_prev_time = millis();
-          }
-        }
-      }
-      break;
-    case 1:
-      if (left_is_obstacle && !right_is_obstacle) {
-        rgb.flashGreenColorLeft();
-        motion_mode = TURNLEFT;
-      } else if (!left_is_obstacle && right_is_obstacle) {
-        rgb.flashGreenColorRight();
-        motion_mode = TURNRIGHT;
-      } else if (left_is_obstacle && right_is_obstacle) {
-        rgb.flashGreenColorFront();
-        motion_mode = FORWARD;
-      } else {
-        follow_flag = 0;
-        motion_mode = STANDBY;
-        rgb.brightGreenColor();
-      }
-      break;
-    case 2:
-      if (distance_value > distance_min && distance_value < distance_max) {
-        rgb.flashGreenColorFront();
-        motion_mode = FORWARD;
-      } else {
-        follow_flag = 0;
-        motion_mode = STANDBY;
-        rgb.brightGreenColor();
-      }
-      break;
-    default:
-      break;
-  }
-}
-
-void followMode2() {
-  unsigned int distance_min = 5;
-  unsigned int distance_max = 35;
-
-  switch (follow_flag) {
-    case 0:
-      if (millis() - follow_prev_time < 500) {
-        motion_mode = STANDBY;
-        rgb.brightGreenColor();
-      } else if (millis() - follow_prev_time >= 500) {
-        if (left_is_obstacle || right_is_obstacle) {
-          follow_flag = 1;
-        } else {
-          if (distance_value > distance_min && distance_value < distance_max) {
-            follow_flag = 2;
-          } else {
-            follow_prev_time = millis();
-          }
-        }
-      }
-      break;
-    case 1:
-      if (left_is_obstacle && !right_is_obstacle) {
-        rgb.flashGreenColorLeft();
-        motion_mode = TURNLEFT;
-      } else if (!left_is_obstacle && right_is_obstacle) {
-        rgb.flashGreenColorRight();
-        motion_mode = TURNRIGHT;
-      } else if (left_is_obstacle && right_is_obstacle) {
-        rgb.flashGreenColorFront();
-        motion_mode = BACKWARD;
-      } else {
-        follow_flag = 0;
-        motion_mode = STANDBY;
-        rgb.brightGreenColor();
-      }
-      break;
-    case 2:
-      if (distance_value > distance_min && distance_value < distance_max) {
-        rgb.flashGreenColorFront();
-        motion_mode = BACKWARD;
-      } else {
-        follow_flag = 0;
-        motion_mode = STANDBY;
-        rgb.brightGreenColor();
-      }
-      break;
-    default:
-      break;
-  }
-}
-
-void measureDistance() {
-  if (measure_flag == 0) {
-    measure_prev_time = micros();
-    attachPinChangeInterrupt(ECHO_PIN, measureDistance, FALLING);
-    measure_flag = 1;
-  } else if (measure_flag == 1) {
-    distance_value = (micros() - measure_prev_time) *
-                     0.017;  // 340.29 m/s / 2 -> (340.29*100 cm) /(1000*1000
-                             // us) / 2 = 0.0170145
-    measure_flag = 2;
-  }
-}
-
-void getDistance() {
-  if (millis() - get_distance_prev_time > 50) {
-    get_distance_prev_time = millis();
-    measure_flag = 0;
-    attachPinChangeInterrupt(ECHO_PIN, measureDistance, RISING);
+void UltrasonicSensor::getDistance() {
+  if (millis() - get_distance_prev_time_ > 100) {
+    get_distance_prev_time_ = millis();
     digitalWrite(TRIG_PIN, LOW);
     delayMicroseconds(2);
     digitalWrite(TRIG_PIN, HIGH);
     delayMicroseconds(10);
     digitalWrite(TRIG_PIN, LOW);
+    measure_flag_ = 0;
+    attachPinChangeInterrupt(ECHO_PIN, measureDistanceISR, RISING);
+  }
+}
+
+void UltrasonicSensor::checkObstacle() {
+  if (millis() - ir_send_time_ > 50) {
+    ir_send_time_ = millis();
+    send38K(IR_SEND_PIN);
+    delay(2);
+
+    if (left_receive_flag_ == 0) {
+      left_receive_flag_ = 1;
+      left_count_ = 0;
+      left_count_time_ = millis();
+    }
+    if (millis() - left_count_time_ > 50) {
+      left_receive_flag_ = 0;
+      if (left_count_ >= 2) {
+        leftFilter(true);
+      } else {
+        leftFilter(false);
+      }
+    }
+    left_is_obstacle_ = (left_count_flag_ >= 3);
+
+    if (right_receive_flag_ == 0) {
+      right_receive_flag_ = 1;
+      right_count_ = 0;
+      right_count_time_ = millis();
+    }
+    if (millis() - right_count_time_ > 50) {
+      right_receive_flag_ = 0;
+      if (right_count_ >= 2) {
+        rightFilter(true);
+      } else {
+        rightFilter(false);
+      }
+    }
+    right_is_obstacle_ = (right_count_flag_ >= 3);
+  }
+}
+
+void UltrasonicSensor::obstacleAvoidanceMode() {
+  if (millis() - obstacle_avoidance_prev_time > 2000) {
+    obstacle_avoidance_flag = 1;
+  }
+  if (obstacle_avoidance_flag == 1) {
+    if (left_is_obstacle_ && right_is_obstacle_) {
+      state_.motion_mode = BACKWARD;
+      rgb_->flashYellowColorback();
+    } else if (left_is_obstacle_) {
+      state_.motion_mode = TURNRIGHT;
+      rgb_->flashYellowColorRight();
+    } else if (right_is_obstacle_) {
+      state_.motion_mode = TURNLEFT;
+      rgb_->flashYellowColorLeft();
+    } else if (distance_value < 20) {
+      state_.motion_mode = BACKWARD;
+      rgb_->flashYellowColorback();
+    } else if (distance_value >= 20 && distance_value < 40) {
+      state_.motion_mode = STANDBY;
+      rgb_->lightOff();
+    } else {
+      state_.motion_mode = FORWARD;
+      rgb_->flashYellowColorFront();
+    }
+  }
+}
+
+void UltrasonicSensor::followMode() {
+  if (millis() - follow_prev_time > 2000) {
+    follow_flag = 1;
+  }
+  if (follow_flag == 1) {
+    if (left_is_obstacle_ && right_is_obstacle_) {
+      state_.motion_mode = FORWARD;
+      rgb_->flashGreenColorFront();
+    } else if (left_is_obstacle_) {
+      state_.motion_mode = TURNLEFT;
+      rgb_->flashGreenColorLeft();
+    } else if (right_is_obstacle_) {
+      state_.motion_mode = TURNRIGHT;
+      rgb_->flashGreenColorRight();
+    } else if (distance_value < 15) {
+      state_.motion_mode = BACKWARD;
+      rgb_->flashGreenColorback();
+    } else if (distance_value >= 15 && distance_value < 40) {
+      state_.motion_mode = STANDBY;
+      rgb_->lightOff();
+    } else {
+      state_.motion_mode = STANDBY;
+      rgb_->lightOff();
+    }
+  }
+}
+
+void UltrasonicSensor::followMode2() {
+  if (millis() - follow_prev_time > 2000) {
+    follow_flag = 1;
+  }
+  if (follow_flag == 1) {
+    if (left_is_obstacle_ && right_is_obstacle_) {
+      state_.motion_mode = FORWARD;
+      rgb_->flashGreenColorFront();
+    } else if (left_is_obstacle_) {
+      state_.motion_mode = TURNLEFT;
+      rgb_->flashGreenColorLeft();
+    } else if (right_is_obstacle_) {
+      state_.motion_mode = TURNRIGHT;
+      rgb_->flashGreenColorRight();
+    } else if (distance_value < 10) {
+      state_.motion_mode = BACKWARD;
+      rgb_->flashGreenColorback();
+    } else if (distance_value >= 10 && distance_value < 30) {
+      state_.motion_mode = FORWARD;
+      rgb_->flashGreenColorFront();
+    } else if (distance_value >= 30 && distance_value < 50) {
+      state_.motion_mode = STANDBY;
+      rgb_->lightOff();
+    } else {
+      state_.motion_mode = STANDBY;
+      rgb_->lightOff();
+    }
   }
 }

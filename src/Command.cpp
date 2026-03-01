@@ -2,33 +2,46 @@
 
 #include "EnableInterruptWrapper.h"
 #include "Pins.h"
-#include "mode.h"
 
-char key_value = '\0';
-char key_flag = '\0';
-char key_mode = 0;
-char prev_key_mode = 0;
-unsigned long key_mode_time = 0;
+InputHandler* InputHandler::instance_ = nullptr;
 
-void keyValue() {
-  if (millis() - key_mode_time > 500) {
-    key_mode_time = millis();
+InputHandler::InputHandler(CarState& state)
+    : key_value('\0'),
+      key_flag('\0'),
+      state_(state),
+      key_mode_(0),
+      prev_key_mode_(0),
+      key_mode_time_(0) {
+}
 
-    key_mode++;
+void InputHandler::init() {
+  instance_ = this;
+  pinMode(KEY_MODE, INPUT_PULLUP);
+  enableInterrupt(KEY_MODE, keyISR, FALLING);
+}
 
-    if (key_mode >= 5) {
-      key_mode = 0;
+void InputHandler::keyISR() {
+  if (instance_)
+    instance_->onKeyPress();
+}
+
+void InputHandler::onKeyPress() {
+  if (millis() - key_mode_time_ > 500) {
+    key_mode_time_ = millis();
+    key_mode_++;
+    if (key_mode_ >= 5) {
+      key_mode_ = 0;
     }
   }
 }
 
-bool getKeyValue() {
-  if (prev_key_mode != key_mode) {
-    prev_key_mode = key_mode;
-    switch (key_mode) {
+bool InputHandler::getKeyValue() {
+  if (prev_key_mode_ != key_mode_) {
+    prev_key_mode_ = key_mode_;
+    switch (key_mode_) {
       case 0:
         key_value = 's';
-        function_mode = IDLE;
+        state_.function_mode = IDLE;
         break;
       case 1:
         key_value = '1';
@@ -50,21 +63,16 @@ bool getKeyValue() {
   return false;
 }
 
-void keyInit() {
-  pinMode(KEY_MODE, INPUT_PULLUP);
-  enableInterrupt(KEY_MODE, keyValue, FALLING);
-}
-
-bool getBluetoothData() {
+bool InputHandler::getBluetoothData() {
   if (Serial.available()) {
     char c = Serial.read();
     if (c != '\0' && c != '\n') {
       key_value = c;
       if (c == 'f' || c == 'b' || c == 'l' || c == 'i') {
-        function_mode = BLUETOOTH;
+        state_.function_mode = BLUETOOTH;
       }
       if (c == 's') {
-        function_mode = IDLE;
+        state_.function_mode = IDLE;
       }
       if (key_value == 'f' || key_value == 'b' || key_value == 'l' ||
           key_value == 'i' || key_value == 's' || key_value == '0' ||

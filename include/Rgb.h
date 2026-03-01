@@ -1,20 +1,24 @@
-/*
- * @Description: In User Settings Edit
- * @Author: your name
- * @Date: 2019-10-08 09:35:07
- * @LastEditTime: 2019-10-10 15:57:17
- * @LastEditors: Please set LastEditors
- */
 #ifndef RGB_H
 #define RGB_H
 
 #include "Adafruit_NeoPixel.h"
 #include "Pins.h"
+#include "mode.h"
+
+class InputHandler;
+class BalanceCar;
 
 class RGB : public Adafruit_NeoPixel {
  public:
-  RGB() : Adafruit_NeoPixel(NUMPIXELS, RGB_PIN, NEO_GRB + NEO_KHZ800) {
+  RGB()
+      : Adafruit_NeoPixel(NUMPIXELS, RGB_PIN, NEO_GRB + NEO_KHZ800),
+        state_(nullptr),
+        input_(nullptr),
+        car_(nullptr) {
   }
+
+  void init(CarState& state, InputHandler& input, BalanceCar& car);
+
   uint8_t gamma[256] = {
       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   1,   1,
@@ -34,6 +38,7 @@ class RGB : public Adafruit_NeoPixel {
       180, 182, 184, 186, 189, 191, 193, 196, 198, 200, 203, 205, 208, 210, 213,
       215, 218, 220, 223, 225, 228, 231, 233, 236, 239, 241, 244, 247, 249, 252,
       255};
+
   uint32_t led_rgb_new[NUMPIXELS];
   uint32_t led_rgb_old[NUMPIXELS];
   int brightness = 50;
@@ -55,6 +60,7 @@ class RGB : public Adafruit_NeoPixel {
     WheelPos -= 170;
     return Color(WheelPos * 3, 255 - WheelPos * 3, 0);
   }
+
   uint8_t red(uint32_t c) {
     return (c >> 8);
   }
@@ -64,23 +70,22 @@ class RGB : public Adafruit_NeoPixel {
   uint8_t blue(uint32_t c) {
     return (c);
   }
+
   bool pulseWhite(uint8_t wait) {
     for (int j = 0; j < 256; j++) {
       for (uint16_t i = 0; i < numPixels(); i++) {
         setPixelColor(i, Color(0, 0, 0, gamma[j]));
       }
-      if (rgbDelay(wait)) {
+      if (rgbDelay(wait))
         return true;
-      }
       show();
     }
     for (int j = 255; j >= 0; j--) {
       for (uint16_t i = 0; i < numPixels(); i++) {
         setPixelColor(i, Color(0, 0, 0, gamma[j]));
       }
-      if (rgbDelay(wait)) {
+      if (rgbDelay(wait))
         return true;
-      }
       show();
     }
     return false;
@@ -93,9 +98,8 @@ class RGB : public Adafruit_NeoPixel {
           setPixelColor(i + q, Color(r, g, b));
         }
         show();
-        if (rgbDelay(wait)) {
+        if (rgbDelay(wait))
           return true;
-        }
         for (uint16_t i = 0; i < numPixels(); i = i + 3) {
           setPixelColor(i + q, 0);
         }
@@ -111,9 +115,8 @@ class RGB : public Adafruit_NeoPixel {
           setPixelColor(i, Wheel((i + j) & 255));
         }
         show();
-        if (rgbDelay(wait)) {
+        if (rgbDelay(wait))
           return true;
-        }
       }
     }
     return false;
@@ -125,9 +128,8 @@ class RGB : public Adafruit_NeoPixel {
         setPixelColor(i, Wheel(((i * 256 / numPixels()) + j) & 255));
       }
       show();
-      if (rgbDelay(wait)) {
+      if (rgbDelay(wait))
         return true;
-      }
     }
     return false;
   }
@@ -140,9 +142,8 @@ class RGB : public Adafruit_NeoPixel {
             setPixelColor(i + q, Wheel((i + j) % 255));
           }
           show();
-          if (rgbDelay(wait)) {
+          if (rgbDelay(wait))
             return true;
-          }
           for (uint16_t i = 0; i < numPixels(); i = i + 3) {
             setPixelColor(i + q, 0);
           }
@@ -172,15 +173,13 @@ class RGB : public Adafruit_NeoPixel {
           fadeVal--;
         }
         show();
-        if (rgbDelay(wait)) {
+        if (rgbDelay(wait))
           return true;
-        }
       }
     }
 
-    if (rgbDelay(500)) {
+    if (rgbDelay(500))
       return true;
-    }
 
     for (int k = 0; k < whiteLoops; k++) {
       for (int j = 0; j < 256; j++) {
@@ -189,9 +188,8 @@ class RGB : public Adafruit_NeoPixel {
         }
         show();
       }
-      if (rgbDelay(2000)) {
+      if (rgbDelay(2000))
         return true;
-      }
       for (int j = 255; j >= 0; j--) {
         for (uint16_t i = 0; i < numPixels(); i++) {
           setPixelColor(i, Color(0, 0, 0, gamma[j]));
@@ -200,10 +198,8 @@ class RGB : public Adafruit_NeoPixel {
       }
     }
 
-    if (rgbDelay(500)) {
+    if (rgbDelay(500))
       return true;
-    }
-
     return false;
   }
 
@@ -217,8 +213,6 @@ class RGB : public Adafruit_NeoPixel {
     int loops = 100;
     int loopNum = 0;
 
-    static unsigned long lastTime = 0;
-
     while (true) {
       for (int j = 0; j < 256; j++) {
         for (uint16_t i = 0; i < numPixels(); i++) {
@@ -230,13 +224,13 @@ class RGB : public Adafruit_NeoPixel {
           }
         }
 
-        if (millis() - lastTime > whiteSpeed) {
+        if (millis() - white_over_rainbow_last_time_ > whiteSpeed) {
           head++;
           tail++;
           if (head == numPixels()) {
             loopNum++;
           }
-          lastTime = millis();
+          white_over_rainbow_last_time_ = millis();
         }
 
         if (loopNum == loops)
@@ -245,20 +239,13 @@ class RGB : public Adafruit_NeoPixel {
         head %= numPixels();
         tail %= numPixels();
         show();
-        if (rgbDelay(wait)) {
+        if (rgbDelay(wait))
           return true;
-        }
       }
     }
     return false;
   }
 
-  void initialize() {
-    begin();
-    setBrightness(brightness);
-    show();
-  }
-  // 闪烁颜色设置
   void setColorNew(unsigned char r0, unsigned char g0, unsigned char b0,
                    unsigned char r1, unsigned char g1, unsigned char b1,
                    unsigned char r2, unsigned char g2, unsigned char b2,
@@ -268,7 +255,7 @@ class RGB : public Adafruit_NeoPixel {
     led_rgb_new[2] = Color(r2, g2, b2);
     led_rgb_new[3] = Color(r3, g3, b3);
   }
-  // 闪烁颜色设置
+
   void setColorOld(unsigned char r0, unsigned char g0, unsigned char b0,
                    unsigned char r1, unsigned char g1, unsigned char b1,
                    unsigned char r2, unsigned char g2, unsigned char b2,
@@ -278,122 +265,108 @@ class RGB : public Adafruit_NeoPixel {
     led_rgb_old[2] = Color(r2, g2, b2);
     led_rgb_old[3] = Color(r3, g3, b3);
   }
-  void blink(unsigned long delay_time)  // 灯光闪烁
-  {
-    if ((millis() - previous_millis < delay_time) && (delay_flag == 0)) {
-      delay_flag = 1;
+
+  void blink(unsigned long delay_time) {
+    if ((millis() - previous_millis_ < delay_time) && (delay_flag_ == 0)) {
+      delay_flag_ = 1;
       for (size_t i = 0; i < numPixels(); i++) {
         setPixelColor(i, led_rgb_new[i]);
       }
       show();
-    } else if ((millis() - previous_millis < delay_time * 2) &&
-               (millis() - previous_millis > delay_time) && (delay_flag == 1)) {
-      delay_flag = 2;
+    } else if ((millis() - previous_millis_ < delay_time * 2) &&
+               (millis() - previous_millis_ > delay_time) &&
+               (delay_flag_ == 1)) {
+      delay_flag_ = 2;
       for (size_t i = 0; i < numPixels(); i++) {
         setPixelColor(i, led_rgb_old[i]);
       }
       show();
-    } else if (millis() - previous_millis >= delay_time * 2) {
-      delay_flag = 0;
-      previous_millis = millis();
+    } else if (millis() - previous_millis_ >= delay_time * 2) {
+      delay_flag_ = 0;
+      previous_millis_ = millis();
     }
   }
-  void lightOff()  // 关闭灯光
-  {
+
+  void lightOff() {
     setColorNew(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     setColorOld(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   }
-  void brightRedColor()  // 亮红灯
-  {
+  void brightRedColor() {
     setColorNew(255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0);
     setColorOld(255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0);
   }
-  void flashRedColor()  // 闪红灯
-  {
+  void flashRedColor() {
     setColorNew(255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0);
     setColorOld(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   }
-  void brightBlueColor()  // 亮蓝灯
-  {
+  void brightBlueColor() {
     setColorNew(0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0, 255);
     setColorOld(0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0, 255);
   }
-  void flashBlueColorFront()  // 前面闪蓝灯
-  {
+  void flashBlueColorFront() {
     setColorNew(0, 0, 0, 0, 0, 0, 0, 0, 255, 0, 0, 255);
     setColorOld(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   }
-  void flashBlueColorback()  // 后面闪蓝灯
-  {
+  void flashBlueColorback() {
     setColorNew(0, 0, 255, 0, 0, 255, 0, 0, 0, 0, 0, 0);
     setColorOld(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   }
-  void flashBlueColorLeft()  // 左侧闪蓝灯
-  {
+  void flashBlueColorLeft() {
     setColorNew(0, 0, 0, 0, 0, 255, 0, 0, 255, 0, 0, 0);
     setColorOld(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   }
-  void flashBlueColorRight()  // 右侧闪蓝灯
-  {
+  void flashBlueColorRight() {
     setColorNew(0, 0, 255, 0, 0, 0, 0, 0, 0, 0, 0, 255);
     setColorOld(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   }
-  void brightYellowColor()  // 亮黄灯
-  {
+  void brightYellowColor() {
     setColorNew(255, 255, 0, 255, 255, 0, 255, 255, 0, 255, 255, 0);
     setColorOld(255, 255, 0, 255, 255, 0, 255, 255, 0, 255, 255, 0);
   }
-  void flashYellowColorFront()  // 前面闪黄灯
-  {
+  void flashYellowColorFront() {
     setColorNew(0, 0, 0, 0, 0, 0, 255, 255, 0, 255, 255, 0);
     setColorOld(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   }
-  void flashYellowColorback()  // 后面闪黄灯
-  {
+  void flashYellowColorback() {
     setColorNew(255, 255, 0, 255, 255, 0, 0, 0, 0, 0, 0, 0);
     setColorOld(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   }
-  void flashYellowColorLeft()  // 左侧闪黄灯
-  {
+  void flashYellowColorLeft() {
     setColorNew(0, 0, 0, 255, 255, 0, 255, 255, 0, 0, 0, 0);
     setColorOld(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   }
-  void flashYellowColorRight()  // 右侧闪黄灯
-  {
+  void flashYellowColorRight() {
     setColorNew(255, 255, 0, 0, 0, 0, 0, 0, 0, 255, 255, 0);
     setColorOld(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   }
-  void brightGreenColor()  // 亮绿灯
-  {
+  void brightGreenColor() {
     setColorNew(0, 255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0);
     setColorOld(0, 255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0);
   }
-  void flashGreenColorFront()  // 前面闪绿灯
-  {
+  void flashGreenColorFront() {
     setColorNew(0, 0, 0, 0, 0, 0, 0, 255, 0, 0, 255, 0);
     setColorOld(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   }
-  void flashGreenColorback()  // 后面闪绿灯
-  {
+  void flashGreenColorback() {
     setColorNew(0, 255, 0, 0, 255, 0, 0, 0, 0, 0, 0, 0);
     setColorOld(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   }
-  void flashGreenColorLeft()  // 左侧闪绿灯
-  {
+  void flashGreenColorLeft() {
     setColorNew(0, 0, 0, 0, 255, 0, 0, 255, 0, 0, 0, 0);
     setColorOld(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   }
-  void flashGreenColorRight()  // 右侧闪绿灯
-  {
+  void flashGreenColorRight() {
     setColorNew(0, 255, 0, 0, 0, 0, 0, 0, 0, 0, 255, 0);
     setColorOld(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   }
 
  private:
-  unsigned char delay_flag = 0;
-  unsigned long previous_millis = 0;
+  CarState* state_;
+  InputHandler* input_;
+  BalanceCar* car_;
+  unsigned char delay_flag_ = 0;
+  unsigned long previous_millis_ = 0;
+  unsigned long white_over_rainbow_last_time_ = 0;
 };
-
-extern RGB rgb;
 
 #endif

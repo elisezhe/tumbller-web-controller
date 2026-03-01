@@ -1,25 +1,29 @@
-/*
- * @Description: RGB implementation
- */
 #include "Rgb.h"
 
 #include "BalanceCar.h"
 #include "Command.h"
-#include "mode.h"
 
-RGB rgb;
+void RGB::init(CarState& state, InputHandler& input, BalanceCar& car) {
+  state_ = &state;
+  input_ = &input;
+  car_ = &car;
+  begin();
+  setBrightness(brightness);
+  show();
+}
 
 bool RGB::rgbDelay(unsigned long wait) {
   rgb_delay_time = millis();
   while (millis() - rgb_delay_time < wait) {
-    if (getBluetoothData() || getKeyValue()) {
+    if (input_->getBluetoothData() || input_->getKeyValue()) {
       return true;
     }
-    if (motion_mode == STOP && balance_angle_min <= kalmanfilter_angle &&
-        kalmanfilter_angle <= balance_angle_max) {
-      motion_mode = STANDBY;
+    if (state_->motion_mode == STOP &&
+        car_->balance_angle_min <= car_->kalmanfilter_angle &&
+        car_->kalmanfilter_angle <= car_->balance_angle_max) {
+      state_->motion_mode = STANDBY;
       lightOff();
-      function_mode = IDLE;
+      state_->function_mode = IDLE;
       return true;
     }
   }
