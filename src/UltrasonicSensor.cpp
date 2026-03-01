@@ -16,6 +16,8 @@ const uint8_t kObstacleHitThreshold = 2;  // min ISR hits to flag obstacle
 const uint8_t kFilterMajority =
     3;  // min positive samples (out of 10) to declare
 const uint32_t kObstacleWindowMs = 50;  // sliding window for hit counting
+const uint8_t kTrigSetupUs = 2;   // HC-SR04: low before trigger pulse
+const uint8_t kTrigPulseUs = 10;  // HC-SR04: trigger pulse width
 }  // namespace
 
 UltrasonicSensor* UltrasonicSensor::instance_ = nullptr;
@@ -126,9 +128,9 @@ void UltrasonicSensor::getDistance() {
   if (millis() - get_distance_prev_time_ > kDistanceIntervalMs) {
     get_distance_prev_time_ = millis();
     digitalWrite(TRIG_PIN, LOW);
-    delayMicroseconds(2);
+    delayMicroseconds(kTrigSetupUs);
     digitalWrite(TRIG_PIN, HIGH);
-    delayMicroseconds(10);
+    delayMicroseconds(kTrigPulseUs);
     digitalWrite(TRIG_PIN, LOW);
     measure_flag_ = 0;
     attachPinChangeInterrupt(ECHO_PIN, measureDistanceISR, RISING);
@@ -139,7 +141,7 @@ void UltrasonicSensor::checkObstacle() {
   if (millis() - ir_send_time_ > kObstacleCheckIntervalMs) {
     ir_send_time_ = millis();
     send38K(IR_SEND_PIN);
-    delay(kIrSettleMs);
+    delay(kIrSettleMs);  // blocking: 2ms settle for IR receiver
 
     if (left_receive_flag_ == 0) {
       left_receive_flag_ = 1;

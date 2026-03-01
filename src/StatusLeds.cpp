@@ -1,5 +1,10 @@
 #include "StatusLeds.h"
 
+namespace {
+const uint16_t kFadePauseMs = 500;   // pause between rainbow/white phases
+const uint16_t kWhiteHoldMs = 2000;  // hold time for white phase
+}  // namespace
+
 StatusLeds::StatusLeds()
     : Adafruit_NeoPixel(NUMPIXELS, RGB_PIN, NEO_GRB + NEO_KHZ800),
       brightness(50),
@@ -218,7 +223,7 @@ bool StatusLeds::rainbowFade2White(uint8_t wait, int16_t rainbowLoops,
     }
   }
 
-  if (interruptibleDelay(500))
+  if (interruptibleDelay(kFadePauseMs))
     return true;
 
   for (int16_t k = 0; k < whiteLoops; k++) {
@@ -228,7 +233,7 @@ bool StatusLeds::rainbowFade2White(uint8_t wait, int16_t rainbowLoops,
       }
       show();
     }
-    if (interruptibleDelay(2000))
+    if (interruptibleDelay(kWhiteHoldMs))
       return true;
     for (int16_t j = 255; j >= 0; j--) {
       for (uint16_t i = 0; i < numPixels(); i++) {
@@ -238,7 +243,7 @@ bool StatusLeds::rainbowFade2White(uint8_t wait, int16_t rainbowLoops,
     }
   }
 
-  if (interruptibleDelay(500))
+  if (interruptibleDelay(kFadePauseMs))
     return true;
   return false;
 }

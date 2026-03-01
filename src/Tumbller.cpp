@@ -339,7 +339,7 @@ void Tumbller::selfRight() {
   uint32_t dur = static_cast<uint32_t>(diff * diff / kSelfRightDivisor);
   if (dur > kSelfRightMaxMs)
     dur = kSelfRightMaxMs;
-  delay(dur);
+  delay(dur);  // blocking: up to kSelfRightMaxMs (500ms) for recovery maneuver
   motors.stop();
   car.suppress_motor_output = false;
   start_prev_time = millis();
