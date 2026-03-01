@@ -43,6 +43,8 @@ class BalanceCar {
   WheelEncoder encoder_right_;
   int16_t ax_, ay_, az_, gx_, gy_, gz_;
 
+  unsigned long last_micros_;
+  double speed_dt_;
   double speed_control_output_;
   double speed_filter_;
   int speed_control_period_count_;

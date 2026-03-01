@@ -19,7 +19,10 @@ class PidController {
   /// @param p_input  Signal multiplied by Kp.
   /// @param i_input  Signal accumulated into the integral and multiplied by Ki.
   /// @param d_input  Signal multiplied by Kd.
-  double compute(double p_input, double i_input, double d_input = 0);
+  /// @param dt       Timestep scaling for the integral term (seconds).
+  ///                 Default 1.0 preserves fixed-rate behavior.
+  double compute(double p_input, double i_input, double d_input = 0,
+                 double dt = 1.0);
 
   void resetIntegral();
   double integral() const {

@@ -16,7 +16,7 @@ BalanceCar::BalanceCar(CarState& state)
       setting_car_speed(0),
       setting_turn_speed(0),
       pid_balance(55, 0, 0.75),
-      pid_speed(10, 0.26, 0, 3000),
+      pid_speed(10, 6.5, 0, 120),
       pid_turn(1, 0, 0.5),
       suppress_motor_output(false),
       state_(state),
@@ -32,6 +32,8 @@ BalanceCar::BalanceCar(CarState& state)
       gx_(0),
       gy_(0),
       gz_(0),
+      last_micros_(0),
+      speed_dt_(0),
       speed_control_output_(0),
       speed_filter_(0),
       speed_control_period_count_(0),
@@ -50,6 +52,7 @@ void BalanceCar::init(MotorDriver& motors) {
 
   encoder_left_.init(ENCODER_LEFT_A_PIN, true);
   encoder_right_.init(ENCODER_RIGHT_A_PIN, false);
+  last_micros_ = micros();
   MsTimer2::set(5, balanceISR);
   MsTimer2::start();
 }
@@ -62,19 +65,27 @@ void BalanceCar::balanceISR() {
 void BalanceCar::balance() {
   sei();
 
+  // Measure actual elapsed time
+  unsigned long now = micros();
+  float dt = (now - last_micros_) * 1e-6f;
+  last_micros_ = now;
+  if (dt <= 0 || dt > 0.02f)
+    dt = 0.005f;  // clamp on first call / overflow
+
   encoder_left_.update(pwm_left_);
   encoder_right_.update(pwm_right_);
 
   mpu_.getMotion6(&ax_, &ay_, &az_, &gx_, &gy_, &gz_);
-  kalmanfilter.process(ax_, ay_, az_, gx_, gy_, gz_);
+  kalmanfilter.process(ax_, ay_, az_, gx_, gy_, gz_, dt);
   kalmanfilter_angle = kalmanfilter.angle;
 
-  // Balance PID
+  // Balance PID (Ki=0, dt has no effect on integral)
   double balance_control_output =
       pid_balance.compute(kalmanfilter_angle - angle_zero_, 0,
                           kalmanfilter.gyro_x - angular_velocity_zero_);
 
-  // Speed PID (every 8 cycles = 40ms)
+  // Speed PID (every 8 cycles, ~40ms)
+  speed_dt_ += dt;
   speed_control_period_count_++;
   if (speed_control_period_count_ >= 8) {
     speed_control_period_count_ = 0;
@@ -83,10 +94,12 @@ void BalanceCar::balance() {
     speed_filter_ = speed_filter_old_ * 0.7 + car_speed * 0.3;
     speed_filter_old_ = speed_filter_;
     double speed_error = setting_car_speed - speed_filter_;
-    speed_control_output_ = pid_speed.compute(-speed_filter_, speed_error);
+    speed_control_output_ =
+        pid_speed.compute(-speed_filter_, speed_error, 0, speed_dt_);
+    speed_dt_ = 0;
   }
 
-  // Turn control
+  // Turn control (Ki=0, dt has no effect on integral)
   double rotation_control_output =
       pid_turn.compute(setting_turn_speed, 0, kalmanfilter.gyro_z);
 

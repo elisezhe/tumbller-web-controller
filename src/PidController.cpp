@@ -5,8 +5,9 @@ PidController::PidController(double kp, double ki, double kd,
     : kp_(kp), ki_(ki), kd_(kd), integral_(0), integral_limit_(integral_limit) {
 }
 
-double PidController::compute(double p_input, double i_input, double d_input) {
-  integral_ += i_input;
+double PidController::compute(double p_input, double i_input, double d_input,
+                              double dt) {
+  integral_ += i_input * dt;
   if (integral_limit_ > 0) {
     integral_ = constrain(integral_, -integral_limit_, integral_limit_);
   }
