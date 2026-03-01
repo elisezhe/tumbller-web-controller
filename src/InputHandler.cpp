@@ -3,6 +3,11 @@
 #include "EnableInterruptWrapper.h"
 #include "Pins.h"
 
+namespace {
+const unsigned long kKeyDebounceMs = 500;  // minimum time between key presses
+const uint8_t kNumKeyModes = 5;            // number of key-button cycling modes
+}  // namespace
+
 InputHandler* InputHandler::instance_ = nullptr;
 
 InputHandler::InputHandler(CarState& state)
@@ -26,10 +31,10 @@ void InputHandler::keyISR() {
 }
 
 void InputHandler::onKeyPress() {
-  if (millis() - key_mode_time_ > 500) {
+  if (millis() - key_mode_time_ > kKeyDebounceMs) {
     key_mode_time_ = millis();
     key_mode_++;
-    if (key_mode_ >= 5) {
+    if (key_mode_ >= kNumKeyModes) {
       key_mode_ = 0;
     }
   }

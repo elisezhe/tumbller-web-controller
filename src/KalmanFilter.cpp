@@ -1,5 +1,11 @@
 #include "KalmanFilter.h"
 
+namespace {
+const float kRadToDeg = 57.2957795f;  // 180/pi — radians to degrees
+const float kGyroLsbPerDps =
+    131.0f;  // MPU6050 sensitivity at +/-250 deg/s range
+}  // namespace
+
 KalmanFilter::KalmanFilter()
     : angle(0),
       gyro_x(0),
@@ -39,10 +45,10 @@ void KalmanFilter::init(float dt, float Q_angle, float Q_gyro, float R_angle,
 
 void KalmanFilter::process(int16_t ax, int16_t ay, int16_t az, int16_t gx,
                            int16_t gy, int16_t gz) {
-  float accel_angle = atan2(ay, az) * 57.3;
-  gyro_x = (gx - gyro_offset_) / 131.0;
+  float accel_angle = atan2(ay, az) * kRadToDeg;
+  gyro_x = (gx - gyro_offset_) / kGyroLsbPerDps;
   update(accel_angle, gyro_x);
-  gyro_z = -gz / 131.0;
+  gyro_z = -gz / kGyroLsbPerDps;
 }
 
 void KalmanFilter::process(int16_t ax, int16_t ay, int16_t az, int16_t gx,

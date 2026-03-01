@@ -3,6 +3,22 @@
 #include "EnableInterruptWrapper.h"
 #include "Pins.h"
 
+namespace {
+const double kSoundUsPerCm = 58.2;    // round-trip microseconds per cm
+const double kMaxDistanceCm = 600.0;  // cap readings beyond this
+const unsigned long kDistanceIntervalMs =
+    100;  // minimum ms between distance pings
+const unsigned long kObstacleCheckIntervalMs =
+    50;                             // minimum ms between IR obstacle checks
+const uint8_t kIrPulseCount = 39;   // pulses per 38 kHz burst (~1ms)
+const uint8_t kIrHalfPeriodUs = 9;  // half-period for ~38 kHz carrier
+const uint8_t kIrSettleMs = 2;      // settle time after IR burst
+const uint8_t kObstacleHitThreshold = 2;  // min ISR hits to flag obstacle
+const uint8_t kFilterMajority =
+    3;  // min positive samples (out of 10) to declare
+const unsigned long kObstacleWindowMs = 50;  // sliding window for hit counting
+}  // namespace
+
 UltrasonicSensor* UltrasonicSensor::instance_ = nullptr;
 
 UltrasonicSensor::UltrasonicSensor()
@@ -60,9 +76,9 @@ void UltrasonicSensor::measureDistanceHandler() {
     measure_flag_ = 1;
   } else if (measure_flag_ == 1) {
     measure_flag_ = 2;
-    distance_value = (micros() - measure_prev_time_) / 58.2;
-    if (distance_value > 600)
-      distance_value = 600;
+    distance_value = (micros() - measure_prev_time_) / kSoundUsPerCm;
+    if (distance_value > kMaxDistanceCm)
+      distance_value = kMaxDistanceCm;
   }
 }
 
@@ -99,16 +115,16 @@ void UltrasonicSensor::leftFilter(bool value) {
 }
 
 void UltrasonicSensor::send38K(int pin) {
-  for (int i = 0; i < 39; i++) {
+  for (int i = 0; i < kIrPulseCount; i++) {
     digitalWrite(pin, LOW);
-    delayMicroseconds(9);
+    delayMicroseconds(kIrHalfPeriodUs);
     digitalWrite(pin, HIGH);
-    delayMicroseconds(9);
+    delayMicroseconds(kIrHalfPeriodUs);
   }
 }
 
 void UltrasonicSensor::getDistance() {
-  if (millis() - get_distance_prev_time_ > 100) {
+  if (millis() - get_distance_prev_time_ > kDistanceIntervalMs) {
     get_distance_prev_time_ = millis();
     digitalWrite(TRIG_PIN, LOW);
     delayMicroseconds(2);
@@ -121,39 +137,31 @@ void UltrasonicSensor::getDistance() {
 }
 
 void UltrasonicSensor::checkObstacle() {
-  if (millis() - ir_send_time_ > 50) {
+  if (millis() - ir_send_time_ > kObstacleCheckIntervalMs) {
     ir_send_time_ = millis();
     send38K(IR_SEND_PIN);
-    delay(2);
+    delay(kIrSettleMs);
 
     if (left_receive_flag_ == 0) {
       left_receive_flag_ = 1;
       left_count_ = 0;
       left_count_time_ = millis();
     }
-    if (millis() - left_count_time_ > 50) {
+    if (millis() - left_count_time_ > kObstacleWindowMs) {
       left_receive_flag_ = 0;
-      if (left_count_ >= 2) {
-        leftFilter(true);
-      } else {
-        leftFilter(false);
-      }
+      leftFilter(left_count_ >= kObstacleHitThreshold);
     }
-    left_is_obstacle = (left_count_flag_ >= 3);
+    left_is_obstacle = (left_count_flag_ >= kFilterMajority);
 
     if (right_receive_flag_ == 0) {
       right_receive_flag_ = 1;
       right_count_ = 0;
       right_count_time_ = millis();
     }
-    if (millis() - right_count_time_ > 50) {
+    if (millis() - right_count_time_ > kObstacleWindowMs) {
       right_receive_flag_ = 0;
-      if (right_count_ >= 2) {
-        rightFilter(true);
-      } else {
-        rightFilter(false);
-      }
+      rightFilter(right_count_ >= kObstacleHitThreshold);
     }
-    right_is_obstacle = (right_count_flag_ >= 3);
+    right_is_obstacle = (right_count_flag_ >= kFilterMajority);
   }
 }
