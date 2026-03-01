@@ -23,18 +23,19 @@ static bool abortCheck() {
 Tumbller::Tumbller()
     : input(state),
       car(state),
-      ultrasonic(state),
       voltage(state),
       start_prev_time(0),
       print_time(0),
-      start_time(0) {
+      start_time(0),
+      behavior_ready_(false),
+      behavior_start_time_(0) {
   tumbller_instance_ = this;
 }
 
 void Tumbller::setup() {
   Serial.begin(9600);
   motors.init();
-  ultrasonic.init(leds);
+  ultrasonic.init();
   input.init();
   leds.init(abortCheck);
   voltage.init(leds);
@@ -76,15 +77,30 @@ void Tumbller::functionMode() {
     case IRREMOTE:
       break;
     case OBSTACLE:
-      ultrasonic.obstacleAvoidanceMode();
+      if (millis() - behavior_start_time_ > 2000) {
+        behavior_ready_ = true;
+      }
+      if (behavior_ready_) {
+        obstacleAvoidance();
+      }
       break;
     case FOLLOW:
-      ultrasonic.followMode();
+      if (millis() - behavior_start_time_ > 2000) {
+        behavior_ready_ = true;
+      }
+      if (behavior_ready_) {
+        followBehavior(15, 15, 40);
+      }
       break;
     case BLUETOOTH:
       break;
     case FOLLOW2:
-      ultrasonic.followMode2();
+      if (millis() - behavior_start_time_ > 2000) {
+        behavior_ready_ = true;
+      }
+      if (behavior_ready_) {
+        followBehavior(10, 30, 50);
+      }
       break;
     default:
       break;
@@ -245,13 +261,13 @@ void Tumbller::keyEventHandle() {
         break;
       case '1':
         state.function_mode = FOLLOW;
-        ultrasonic.follow_flag = 0;
-        ultrasonic.follow_prev_time = millis();
+        behavior_ready_ = false;
+        behavior_start_time_ = millis();
         break;
       case '2':
         state.function_mode = OBSTACLE;
-        ultrasonic.obstacle_avoidance_flag = 0;
-        ultrasonic.obstacle_avoidance_prev_time = millis();
+        behavior_ready_ = false;
+        behavior_start_time_ = millis();
         break;
       case '3':
       rgb_loop:
@@ -342,8 +358,8 @@ void Tumbller::keyEventHandle() {
         break;
       case '0':
         state.function_mode = FOLLOW2;
-        ultrasonic.follow_flag = 0;
-        ultrasonic.follow_prev_time = millis();
+        behavior_ready_ = false;
+        behavior_start_time_ = millis();
         break;
       case '*':
         break;
@@ -355,5 +371,53 @@ void Tumbller::keyEventHandle() {
     if (input.key_flag == input.key_value) {
       input.key_value = '\0';
     }
+  }
+}
+
+void Tumbller::obstacleAvoidance() {
+  if (ultrasonic.left_is_obstacle && ultrasonic.right_is_obstacle) {
+    state.motion_mode = BACKWARD;
+    leds.flash(StatusLeds::Color(255, 255, 0), DIR_BACK);
+  } else if (ultrasonic.left_is_obstacle) {
+    state.motion_mode = TURNRIGHT;
+    leds.flash(StatusLeds::Color(255, 255, 0), DIR_RIGHT);
+  } else if (ultrasonic.right_is_obstacle) {
+    state.motion_mode = TURNLEFT;
+    leds.flash(StatusLeds::Color(255, 255, 0), DIR_LEFT);
+  } else if (ultrasonic.distance_value < 20) {
+    state.motion_mode = BACKWARD;
+    leds.flash(StatusLeds::Color(255, 255, 0), DIR_BACK);
+  } else if (ultrasonic.distance_value < 40) {
+    state.motion_mode = STANDBY;
+    leds.lightOff();
+  } else {
+    state.motion_mode = FORWARD;
+    leds.flash(StatusLeds::Color(255, 255, 0), DIR_FRONT);
+  }
+}
+
+void Tumbller::followBehavior(uint8_t backup_dist, uint8_t follow_dist,
+                              uint8_t stop_dist) {
+  if (ultrasonic.left_is_obstacle && ultrasonic.right_is_obstacle) {
+    state.motion_mode = FORWARD;
+    leds.flash(StatusLeds::Color(0, 255, 0), DIR_FRONT);
+  } else if (ultrasonic.left_is_obstacle) {
+    state.motion_mode = TURNLEFT;
+    leds.flash(StatusLeds::Color(0, 255, 0), DIR_LEFT);
+  } else if (ultrasonic.right_is_obstacle) {
+    state.motion_mode = TURNRIGHT;
+    leds.flash(StatusLeds::Color(0, 255, 0), DIR_RIGHT);
+  } else if (ultrasonic.distance_value < backup_dist) {
+    state.motion_mode = BACKWARD;
+    leds.flash(StatusLeds::Color(0, 255, 0), DIR_BACK);
+  } else if (ultrasonic.distance_value < follow_dist) {
+    state.motion_mode = FORWARD;
+    leds.flash(StatusLeds::Color(0, 255, 0), DIR_FRONT);
+  } else if (ultrasonic.distance_value < stop_dist) {
+    state.motion_mode = STANDBY;
+    leds.lightOff();
+  } else {
+    state.motion_mode = STANDBY;
+    leds.lightOff();
   }
 }

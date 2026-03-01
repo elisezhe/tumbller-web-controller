@@ -2,18 +2,13 @@
 
 #include "EnableInterruptWrapper.h"
 #include "Pins.h"
-#include "StatusLeds.h"
 
 UltrasonicSensor* UltrasonicSensor::instance_ = nullptr;
 
-UltrasonicSensor::UltrasonicSensor(CarState& state)
-    : obstacle_avoidance_flag(0),
-      obstacle_avoidance_prev_time(0),
-      follow_flag(0),
-      follow_prev_time(0),
-      distance_value(0),
-      state_(state),
-      leds_(nullptr),
+UltrasonicSensor::UltrasonicSensor()
+    : distance_value(0),
+      left_is_obstacle(false),
+      right_is_obstacle(false),
       left_count_flag_(0),
       left_index_(0),
       right_count_flag_(0),
@@ -21,23 +16,19 @@ UltrasonicSensor::UltrasonicSensor(CarState& state)
       measure_flag_(0),
       measure_prev_time_(0),
       get_distance_prev_time_(0),
-      turn_count_(0),
       ir_send_time_(0),
       left_receive_flag_(0),
       left_count_(0),
       left_count_time_(0),
-      left_is_obstacle_(false),
       right_receive_flag_(0),
       right_count_(0),
-      right_count_time_(0),
-      right_is_obstacle_(false) {
+      right_count_time_(0) {
   memset(left_flag_, 0, sizeof(left_flag_));
   memset(right_flag_, 0, sizeof(right_flag_));
 }
 
-void UltrasonicSensor::init(StatusLeds& leds) {
+void UltrasonicSensor::init() {
   instance_ = this;
-  leds_ = &leds;
   pinMode(ECHO_PIN, INPUT);
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(IR_SEND_PIN, OUTPUT);
@@ -148,7 +139,7 @@ void UltrasonicSensor::checkObstacle() {
         leftFilter(false);
       }
     }
-    left_is_obstacle_ = (left_count_flag_ >= 3);
+    left_is_obstacle = (left_count_flag_ >= 3);
 
     if (right_receive_flag_ == 0) {
       right_receive_flag_ = 1;
@@ -163,90 +154,6 @@ void UltrasonicSensor::checkObstacle() {
         rightFilter(false);
       }
     }
-    right_is_obstacle_ = (right_count_flag_ >= 3);
-  }
-}
-
-void UltrasonicSensor::obstacleAvoidanceMode() {
-  if (millis() - obstacle_avoidance_prev_time > 2000) {
-    obstacle_avoidance_flag = 1;
-  }
-  if (obstacle_avoidance_flag == 1) {
-    if (left_is_obstacle_ && right_is_obstacle_) {
-      state_.motion_mode = BACKWARD;
-      leds_->flash(StatusLeds::Color(255, 255, 0), DIR_BACK);
-    } else if (left_is_obstacle_) {
-      state_.motion_mode = TURNRIGHT;
-      leds_->flash(StatusLeds::Color(255, 255, 0), DIR_RIGHT);
-    } else if (right_is_obstacle_) {
-      state_.motion_mode = TURNLEFT;
-      leds_->flash(StatusLeds::Color(255, 255, 0), DIR_LEFT);
-    } else if (distance_value < 20) {
-      state_.motion_mode = BACKWARD;
-      leds_->flash(StatusLeds::Color(255, 255, 0), DIR_BACK);
-    } else if (distance_value >= 20 && distance_value < 40) {
-      state_.motion_mode = STANDBY;
-      leds_->lightOff();
-    } else {
-      state_.motion_mode = FORWARD;
-      leds_->flash(StatusLeds::Color(255, 255, 0), DIR_FRONT);
-    }
-  }
-}
-
-void UltrasonicSensor::followMode() {
-  if (millis() - follow_prev_time > 2000) {
-    follow_flag = 1;
-  }
-  if (follow_flag == 1) {
-    if (left_is_obstacle_ && right_is_obstacle_) {
-      state_.motion_mode = FORWARD;
-      leds_->flash(StatusLeds::Color(0, 255, 0), DIR_FRONT);
-    } else if (left_is_obstacle_) {
-      state_.motion_mode = TURNLEFT;
-      leds_->flash(StatusLeds::Color(0, 255, 0), DIR_LEFT);
-    } else if (right_is_obstacle_) {
-      state_.motion_mode = TURNRIGHT;
-      leds_->flash(StatusLeds::Color(0, 255, 0), DIR_RIGHT);
-    } else if (distance_value < 15) {
-      state_.motion_mode = BACKWARD;
-      leds_->flash(StatusLeds::Color(0, 255, 0), DIR_BACK);
-    } else if (distance_value >= 15 && distance_value < 40) {
-      state_.motion_mode = STANDBY;
-      leds_->lightOff();
-    } else {
-      state_.motion_mode = STANDBY;
-      leds_->lightOff();
-    }
-  }
-}
-
-void UltrasonicSensor::followMode2() {
-  if (millis() - follow_prev_time > 2000) {
-    follow_flag = 1;
-  }
-  if (follow_flag == 1) {
-    if (left_is_obstacle_ && right_is_obstacle_) {
-      state_.motion_mode = FORWARD;
-      leds_->flash(StatusLeds::Color(0, 255, 0), DIR_FRONT);
-    } else if (left_is_obstacle_) {
-      state_.motion_mode = TURNLEFT;
-      leds_->flash(StatusLeds::Color(0, 255, 0), DIR_LEFT);
-    } else if (right_is_obstacle_) {
-      state_.motion_mode = TURNRIGHT;
-      leds_->flash(StatusLeds::Color(0, 255, 0), DIR_RIGHT);
-    } else if (distance_value < 10) {
-      state_.motion_mode = BACKWARD;
-      leds_->flash(StatusLeds::Color(0, 255, 0), DIR_BACK);
-    } else if (distance_value >= 10 && distance_value < 30) {
-      state_.motion_mode = FORWARD;
-      leds_->flash(StatusLeds::Color(0, 255, 0), DIR_FRONT);
-    } else if (distance_value >= 30 && distance_value < 50) {
-      state_.motion_mode = STANDBY;
-      leds_->lightOff();
-    } else {
-      state_.motion_mode = STANDBY;
-      leds_->lightOff();
-    }
+    right_is_obstacle = (right_count_flag_ >= 3);
   }
 }
