@@ -8,7 +8,7 @@ const double kAdcRefVoltage = 1.1;     // ATmega328P INTERNAL reference (volts)
 const double kAdcResolution = 1024.0;  // 10-bit ADC
 const double kDividerR1 = 10.0;  // upper resistor in voltage divider (kOhm)
 const double kDividerR2 = 1.5;   // lower resistor in voltage divider (kOhm)
-const double kVoltageOk = 7.8;   // volts — above this = OK (2S Li-ion nominal)
+const double kVoltageOk = 7.8;  // volts — above this = OK (2S Li-ion nominal)
 const double kVoltageCritical =
     7.0;  // volts — below this = critical (2S cutoff)
 }  // namespace
