@@ -30,10 +30,13 @@ class UltrasonicSensor {
 
   unsigned long ir_send_time_;
   unsigned char left_receive_flag_;
+  // PORT(RPi): replace with std::atomic<unsigned int> — 16-bit
+  // reads are non-atomic on AVR; on ARM use atomics or mutex.
   unsigned int left_count_;
   unsigned long left_count_time_;
 
   unsigned char right_receive_flag_;
+  // PORT(RPi): same as left_count_ — use std::atomic<unsigned int>.
   unsigned int right_count_;
   unsigned long right_count_time_;
 

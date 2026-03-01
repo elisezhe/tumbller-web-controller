@@ -18,6 +18,7 @@ void WheelEncoder::init(uint8_t pin, bool use_pcint) {
 }
 
 void WheelEncoder::update(float pwm) {
+  // PORT(RPi): replace cli/sei with std::atomic::exchange(0) or mutex.
   noInterrupts();
   uint16_t t = ticks_;  // 16-bit: needs atomic guard on AVR
   ticks_ = 0;

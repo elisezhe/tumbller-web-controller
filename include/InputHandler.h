@@ -17,6 +17,8 @@ class InputHandler {
 
  private:
   CarState& state_;
+  // PORT(RPi): replace with std::atomic<char> — volatile char is atomic
+  // on AVR (single byte) but needs proper atomics on ARM.
   volatile char key_mode_;  // written from ISR, read from loop()
   char prev_key_mode_;
   unsigned long key_mode_time_;

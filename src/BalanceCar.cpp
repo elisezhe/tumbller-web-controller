@@ -110,6 +110,9 @@ void BalanceCar::balanceISR() {
 }
 
 void BalanceCar::balance() {
+  // PORT(RPi): sei() is AVR-specific (re-enable global interrupts).
+  // On RPi this ISR becomes a timer thread; remove sei() and use
+  // std::mutex or RT scheduling instead of the re-entrance guard.
   sei();
 
   // Measure actual elapsed time

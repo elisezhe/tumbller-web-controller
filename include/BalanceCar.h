@@ -20,6 +20,8 @@ class BalanceCar {
   float kalmanfilter_angle;
   char balance_angle_min;
   char balance_angle_max;
+  // PORT(RPi): replace volatile int8_t with std::atomic<int> — int8_t was
+  // chosen for single-byte AVR atomicity; on ARM use proper atomics.
   volatile int8_t setting_car_speed;   // written from loop(), read from ISR
   volatile int8_t setting_turn_speed;  // written from loop(), read from ISR
 
@@ -29,6 +31,8 @@ class BalanceCar {
 
   /// Set true while directly driving motors (e.g. self-right).
   /// The balance ISR will skip motor output while this is set.
+  // PORT(RPi): make std::atomic<bool> — bool is atomic on AVR but
+  // volatile is needed; on ARM use std::atomic for visibility.
   bool suppress_motor_output;
 
  private:
