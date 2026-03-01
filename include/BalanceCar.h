@@ -6,6 +6,7 @@
 #include "KalmanFilter.h"
 #include "MPU6050.h"
 #include "PidController.h"
+#include "WheelEncoder.h"
 #include "mode.h"
 
 class MotorDriver;
@@ -38,12 +39,10 @@ class BalanceCar {
   double angle_zero_;
   double angular_velocity_zero_;
 
-  volatile unsigned long encoder_count_right_a_;
-  volatile unsigned long encoder_count_left_a_;
+  WheelEncoder encoder_left_;
+  WheelEncoder encoder_right_;
   int16_t ax_, ay_, az_, gx_, gy_, gz_;
 
-  int encoder_left_pulse_num_speed_;
-  int encoder_right_pulse_num_speed_;
   double speed_control_output_;
   double speed_filter_;
   int speed_control_period_count_;
@@ -55,8 +54,6 @@ class BalanceCar {
 
   static BalanceCar* instance_;
   static void balanceISR();
-  static void encoderLeftISR();
-  static void encoderRightISR();
 };
 
 #endif

@@ -1,6 +1,5 @@
 #include "BalanceCar.h"
 
-#include "EnableInterruptWrapper.h"
 #include "I2Cdev.h"
 #include "MotorDriver.h"
 #include "MsTimer2.h"
@@ -25,16 +24,14 @@ BalanceCar::BalanceCar(CarState& state)
       mpu_(),
       angle_zero_(0),
       angular_velocity_zero_(0),
-      encoder_count_right_a_(0),
-      encoder_count_left_a_(0),
+      encoder_left_(),
+      encoder_right_(),
       ax_(0),
       ay_(0),
       az_(0),
       gx_(0),
       gy_(0),
       gz_(0),
-      encoder_left_pulse_num_speed_(0),
-      encoder_right_pulse_num_speed_(0),
       speed_control_output_(0),
       speed_filter_(0),
       speed_control_period_count_(0),
@@ -51,9 +48,8 @@ void BalanceCar::init(MotorDriver& motors) {
   mpu_.initialize();
   kalmanfilter.init(0.005, 0.001, 0.005, 0.5, 1, 128.1);
 
-  enableInterrupt(ENCODER_LEFT_A_PIN | PINCHANGEINTERRUPT, encoderLeftISR,
-                  CHANGE);
-  enableInterrupt(ENCODER_RIGHT_A_PIN, encoderRightISR, CHANGE);
+  encoder_left_.init(ENCODER_LEFT_A_PIN, true);
+  encoder_right_.init(ENCODER_RIGHT_A_PIN, false);
   MsTimer2::set(5, balanceISR);
   MsTimer2::start();
 }
@@ -63,25 +59,11 @@ void BalanceCar::balanceISR() {
     instance_->balance();
 }
 
-void BalanceCar::encoderLeftISR() {
-  if (instance_)
-    instance_->encoder_count_left_a_++;
-}
-
-void BalanceCar::encoderRightISR() {
-  if (instance_)
-    instance_->encoder_count_right_a_++;
-}
-
 void BalanceCar::balance() {
   sei();
 
-  encoder_left_pulse_num_speed_ +=
-      pwm_left_ < 0 ? -encoder_count_left_a_ : encoder_count_left_a_;
-  encoder_right_pulse_num_speed_ +=
-      pwm_right_ < 0 ? -encoder_count_right_a_ : encoder_count_right_a_;
-  encoder_count_left_a_ = 0;
-  encoder_count_right_a_ = 0;
+  encoder_left_.update(pwm_left_);
+  encoder_right_.update(pwm_right_);
 
   mpu_.getMotion6(&ax_, &ay_, &az_, &gx_, &gy_, &gz_);
   kalmanfilter.process(ax_, ay_, az_, gx_, gy_, gz_);
@@ -97,9 +79,7 @@ void BalanceCar::balance() {
   if (speed_control_period_count_ >= 8) {
     speed_control_period_count_ = 0;
     double car_speed =
-        (encoder_left_pulse_num_speed_ + encoder_right_pulse_num_speed_) * 0.5;
-    encoder_left_pulse_num_speed_ = 0;
-    encoder_right_pulse_num_speed_ = 0;
+        (encoder_left_.readAndReset() + encoder_right_.readAndReset()) * 0.5;
     speed_filter_ = speed_filter_old_ * 0.7 + car_speed * 0.3;
     speed_filter_old_ = speed_filter_;
     double speed_error = setting_car_speed - speed_filter_;
