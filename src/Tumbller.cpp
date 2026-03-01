@@ -108,100 +108,45 @@ void Tumbller::functionMode() {
   }
 }
 
+// Speed profile lookup table for directional motion modes.
+// Indexed by [motion_mode - FORWARD][function_mode].
+// KEEP sentinel means "do not change that axis" (used by Bluetooth).
+namespace {
+struct SpeedProfile {
+  int8_t speed;
+  int8_t turn;
+};
+static const int8_t KEEP = -128;
+// Rows: FORWARD, BACKWARD, TURNLEFT, TURNRIGHT  (motion_mode 1-4)
+// Cols: IDLE, IRREMOTE, OBSTACLE, FOLLOW, BLUETOOTH, FOLLOW2
+static const PROGMEM SpeedProfile speed_profiles[4][6] = {
+    // FORWARD
+    {{40, 0}, {80, 0}, {40, 0}, {20, 0}, {80, KEEP}, {20, 0}},
+    // BACKWARD
+    {{-40, 0}, {-80, 0}, {-40, 0}, {-20, 0}, {-80, KEEP}, {-20, 0}},
+    // TURNLEFT
+    {{0, 50}, {0, 80}, {0, 50}, {0, 50}, {KEEP, 80}, {0, 50}},
+    // TURNRIGHT
+    {{0, -50}, {0, -80}, {0, -50}, {0, -50}, {KEEP, -80}, {0, -50}},
+};
+}  // namespace
+
 void Tumbller::setMotionState() {
   switch (state.motion_mode) {
     case FORWARD:
-      switch (state.function_mode) {
-        case FOLLOW:
-          car.setting_car_speed = 20;
-          car.setting_turn_speed = 0;
-          break;
-        case FOLLOW2:
-          car.setting_car_speed = 20;
-          car.setting_turn_speed = 0;
-          break;
-        case BLUETOOTH:
-          car.setting_car_speed = 80;
-          break;
-        case IRREMOTE:
-          car.setting_car_speed = 80;
-          car.setting_turn_speed = 0;
-          break;
-        default:
-          car.setting_car_speed = 40;
-          car.setting_turn_speed = 0;
-          break;
-      }
-      break;
     case BACKWARD:
-      switch (state.function_mode) {
-        case FOLLOW:
-          car.setting_car_speed = -20;
-          car.setting_turn_speed = 0;
-          break;
-        case FOLLOW2:
-          car.setting_car_speed = -20;
-          car.setting_turn_speed = 0;
-          break;
-        case BLUETOOTH:
-          car.setting_car_speed = -80;
-          break;
-        case IRREMOTE:
-          car.setting_car_speed = -80;
-          car.setting_turn_speed = 0;
-          break;
-        default:
-          car.setting_car_speed = -40;
-          car.setting_turn_speed = 0;
-          break;
-      }
-      break;
     case TURNLEFT:
-      switch (state.function_mode) {
-        case FOLLOW:
-          car.setting_car_speed = 0;
-          car.setting_turn_speed = 50;
-          break;
-        case FOLLOW2:
-          car.setting_car_speed = 0;
-          car.setting_turn_speed = 50;
-          break;
-        case BLUETOOTH:
-          car.setting_turn_speed = 80;
-          break;
-        case IRREMOTE:
-          car.setting_car_speed = 0;
-          car.setting_turn_speed = 80;
-          break;
-        default:
-          car.setting_car_speed = 0;
-          car.setting_turn_speed = 50;
-          break;
-      }
+    case TURNRIGHT: {
+      const uint8_t mi = static_cast<uint8_t>(state.motion_mode) - 1;
+      const uint8_t fi = static_cast<uint8_t>(state.function_mode);
+      SpeedProfile p;
+      memcpy_P(&p, &speed_profiles[mi][fi], sizeof(p));
+      if (p.speed != KEEP)
+        car.setting_car_speed = p.speed;
+      if (p.turn != KEEP)
+        car.setting_turn_speed = p.turn;
       break;
-    case TURNRIGHT:
-      switch (state.function_mode) {
-        case FOLLOW:
-          car.setting_car_speed = 0;
-          car.setting_turn_speed = -50;
-          break;
-        case FOLLOW2:
-          car.setting_car_speed = 0;
-          car.setting_turn_speed = -50;
-          break;
-        case BLUETOOTH:
-          car.setting_turn_speed = -80;
-          break;
-        case IRREMOTE:
-          car.setting_car_speed = 0;
-          car.setting_turn_speed = -80;
-          break;
-        default:
-          car.setting_car_speed = 0;
-          car.setting_turn_speed = -50;
-          break;
-      }
-      break;
+    }
     case STANDBY:
       car.setting_car_speed = 0;
       car.setting_turn_speed = 0;
