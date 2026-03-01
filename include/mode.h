@@ -1,3 +1,6 @@
+#ifndef MODE_H
+#define MODE_H
+
 enum FUNCTION_MODE {
   IDLE,
   IRREMOTE,
@@ -5,7 +8,7 @@ enum FUNCTION_MODE {
   FOLLOW,
   BLUETOOTH,
   FOLLOW2,
-} function_mode = IDLE;
+};
 
 enum MOTION_MODE {
   STANDBY,
@@ -15,4 +18,9 @@ enum MOTION_MODE {
   TURNRIGHT,
   STOP,
   START,
-} motion_mode = START;
+};
+
+extern FUNCTION_MODE function_mode;
+extern MOTION_MODE motion_mode;
+
+#endif

@@ -9,7 +9,7 @@
 
 #include "BalanceCar.h"
 #include "Command.h"
-#include "EnableInterrupt.h"
+#include "EnableInterruptWrapper.h"
 #include "Pins.h"
 #include "Rgb.h"
 #include "Ultrasonic.h"

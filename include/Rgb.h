@@ -5,7 +5,11 @@
  * @LastEditTime: 2019-10-10 15:57:17
  * @LastEditors: Please set LastEditors
  */
+#ifndef RGB_H
+#define RGB_H
+
 #include "Adafruit_NeoPixel.h"
+#include "Pins.h"
 
 class RGB : public Adafruit_NeoPixel {
  public:
@@ -37,22 +41,7 @@ class RGB : public Adafruit_NeoPixel {
   unsigned long dispaly_timeout = 0;
   char flag = 0;
 
-  bool rgbDelay(unsigned long wait) {
-    rgb_delay_time = millis();
-    while (millis() - rgb_delay_time < wait) {
-      if (getBluetoothData() || getKeyValue()) {
-        return true;
-      }
-      if (motion_mode == STOP && balance_angle_min <= kalmanfilter_angle &&
-          kalmanfilter_angle <= balance_angle_max) {
-        motion_mode = STANDBY;
-        lightOff();
-        function_mode = IDLE;
-        return true;
-      }
-    }
-    return false;
-  }
+  bool rgbDelay(unsigned long wait);
 
   uint32_t Wheel(byte WheelPos) {
     WheelPos = 255 - WheelPos;
@@ -403,4 +392,8 @@ class RGB : public Adafruit_NeoPixel {
  private:
   unsigned char delay_flag = 0;
   unsigned long previous_millis = 0;
-} rgb;
+};
+
+extern RGB rgb;
+
+#endif
