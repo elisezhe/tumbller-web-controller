@@ -1,5 +1,5 @@
-#ifndef COMMAND_H
-#define COMMAND_H
+#ifndef INPUTHANDLER_H
+#define INPUTHANDLER_H
 
 #include <Arduino.h>
 

@@ -1,8 +1,8 @@
 #include "BalanceCar.h"
 
-#include "Command.h"
 #include "EnableInterruptWrapper.h"
 #include "I2Cdev.h"
+#include "InputHandler.h"
 #include "MsTimer2.h"
 #include "Pins.h"
 #include "Wire.h"

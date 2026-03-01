@@ -1,8 +1,8 @@
-#include "Ultrasonic.h"
+#include "UltrasonicSensor.h"
 
 #include "EnableInterruptWrapper.h"
 #include "Pins.h"
-#include "Rgb.h"
+#include "StatusLeds.h"
 
 UltrasonicSensor* UltrasonicSensor::instance_ = nullptr;
 
@@ -13,7 +13,7 @@ UltrasonicSensor::UltrasonicSensor(CarState& state)
       follow_prev_time(0),
       distance_value(0),
       state_(state),
-      rgb_(nullptr),
+      leds_(nullptr),
       left_count_flag_(0),
       left_index_(0),
       right_count_flag_(0),
@@ -35,9 +35,9 @@ UltrasonicSensor::UltrasonicSensor(CarState& state)
   memset(right_flag_, 0, sizeof(right_flag_));
 }
 
-void UltrasonicSensor::init(RGB& rgb) {
+void UltrasonicSensor::init(StatusLeds& leds) {
   instance_ = this;
-  rgb_ = &rgb;
+  leds_ = &leds;
   pinMode(ECHO_PIN, INPUT);
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(IR_SEND_PIN, OUTPUT);
@@ -174,22 +174,22 @@ void UltrasonicSensor::obstacleAvoidanceMode() {
   if (obstacle_avoidance_flag == 1) {
     if (left_is_obstacle_ && right_is_obstacle_) {
       state_.motion_mode = BACKWARD;
-      rgb_->flashYellowColorback();
+      leds_->flash(StatusLeds::Color(255, 255, 0), DIR_BACK);
     } else if (left_is_obstacle_) {
       state_.motion_mode = TURNRIGHT;
-      rgb_->flashYellowColorRight();
+      leds_->flash(StatusLeds::Color(255, 255, 0), DIR_RIGHT);
     } else if (right_is_obstacle_) {
       state_.motion_mode = TURNLEFT;
-      rgb_->flashYellowColorLeft();
+      leds_->flash(StatusLeds::Color(255, 255, 0), DIR_LEFT);
     } else if (distance_value < 20) {
       state_.motion_mode = BACKWARD;
-      rgb_->flashYellowColorback();
+      leds_->flash(StatusLeds::Color(255, 255, 0), DIR_BACK);
     } else if (distance_value >= 20 && distance_value < 40) {
       state_.motion_mode = STANDBY;
-      rgb_->lightOff();
+      leds_->lightOff();
     } else {
       state_.motion_mode = FORWARD;
-      rgb_->flashYellowColorFront();
+      leds_->flash(StatusLeds::Color(255, 255, 0), DIR_FRONT);
     }
   }
 }
@@ -201,22 +201,22 @@ void UltrasonicSensor::followMode() {
   if (follow_flag == 1) {
     if (left_is_obstacle_ && right_is_obstacle_) {
       state_.motion_mode = FORWARD;
-      rgb_->flashGreenColorFront();
+      leds_->flash(StatusLeds::Color(0, 255, 0), DIR_FRONT);
     } else if (left_is_obstacle_) {
       state_.motion_mode = TURNLEFT;
-      rgb_->flashGreenColorLeft();
+      leds_->flash(StatusLeds::Color(0, 255, 0), DIR_LEFT);
     } else if (right_is_obstacle_) {
       state_.motion_mode = TURNRIGHT;
-      rgb_->flashGreenColorRight();
+      leds_->flash(StatusLeds::Color(0, 255, 0), DIR_RIGHT);
     } else if (distance_value < 15) {
       state_.motion_mode = BACKWARD;
-      rgb_->flashGreenColorback();
+      leds_->flash(StatusLeds::Color(0, 255, 0), DIR_BACK);
     } else if (distance_value >= 15 && distance_value < 40) {
       state_.motion_mode = STANDBY;
-      rgb_->lightOff();
+      leds_->lightOff();
     } else {
       state_.motion_mode = STANDBY;
-      rgb_->lightOff();
+      leds_->lightOff();
     }
   }
 }
@@ -228,25 +228,25 @@ void UltrasonicSensor::followMode2() {
   if (follow_flag == 1) {
     if (left_is_obstacle_ && right_is_obstacle_) {
       state_.motion_mode = FORWARD;
-      rgb_->flashGreenColorFront();
+      leds_->flash(StatusLeds::Color(0, 255, 0), DIR_FRONT);
     } else if (left_is_obstacle_) {
       state_.motion_mode = TURNLEFT;
-      rgb_->flashGreenColorLeft();
+      leds_->flash(StatusLeds::Color(0, 255, 0), DIR_LEFT);
     } else if (right_is_obstacle_) {
       state_.motion_mode = TURNRIGHT;
-      rgb_->flashGreenColorRight();
+      leds_->flash(StatusLeds::Color(0, 255, 0), DIR_RIGHT);
     } else if (distance_value < 10) {
       state_.motion_mode = BACKWARD;
-      rgb_->flashGreenColorback();
+      leds_->flash(StatusLeds::Color(0, 255, 0), DIR_BACK);
     } else if (distance_value >= 10 && distance_value < 30) {
       state_.motion_mode = FORWARD;
-      rgb_->flashGreenColorFront();
+      leds_->flash(StatusLeds::Color(0, 255, 0), DIR_FRONT);
     } else if (distance_value >= 30 && distance_value < 50) {
       state_.motion_mode = STANDBY;
-      rgb_->lightOff();
+      leds_->lightOff();
     } else {
       state_.motion_mode = STANDBY;
-      rgb_->lightOff();
+      leds_->lightOff();
     }
   }
 }

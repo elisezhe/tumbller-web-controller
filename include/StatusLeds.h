@@ -1,0 +1,60 @@
+#ifndef STATUSLEDS_H
+#define STATUSLEDS_H
+
+#include "Adafruit_NeoPixel.h"
+#include "Pins.h"
+#include "mode.h"
+
+class InputHandler;
+class BalanceCar;
+
+// Pixel layout (viewed from behind the car):
+//   pixel 2 (front-left)   pixel 3 (front-right)
+//   pixel 1 (back-left)    pixel 0 (back-right)
+enum LedDirection : uint8_t {
+  DIR_ALL,
+  DIR_FRONT,
+  DIR_BACK,
+  DIR_LEFT,
+  DIR_RIGHT,
+};
+
+class StatusLeds : public Adafruit_NeoPixel {
+ public:
+  StatusLeds();
+  void init(CarState& state, InputHandler& input, BalanceCar& car);
+
+  // Indicator patterns (non-blocking, used with blink())
+  void lightOff();
+  void solid(uint32_t color);
+  void flash(uint32_t color, LedDirection dir);
+  void blink(unsigned long interval);
+
+  // Blocking animations (return true if interrupted by input)
+  bool pulseWhite(uint8_t wait);
+  bool theaterChase(uint8_t r, uint8_t g, uint8_t b, uint8_t wait);
+  bool rainbow(uint8_t wait);
+  bool rainbowCycle(uint8_t wait);
+  bool theaterChaseRainbow(uint8_t wait);
+  bool rainbowFade2White(uint8_t wait, int rainbowLoops, int whiteLoops);
+  bool whiteOverRainbow(uint8_t wait, uint8_t whiteSpeed, uint8_t whiteLength);
+
+  int brightness;
+  char animation_index;
+
+ private:
+  CarState* state_;
+  InputHandler* input_;
+  BalanceCar* car_;
+
+  uint32_t led_on_[NUMPIXELS];
+  uint32_t led_off_[NUMPIXELS];
+  uint8_t blink_phase_;
+  unsigned long blink_prev_millis_;
+  unsigned long white_rainbow_last_time_;
+
+  bool interruptibleDelay(unsigned long wait);
+  uint32_t wheel(uint8_t pos);
+};
+
+#endif

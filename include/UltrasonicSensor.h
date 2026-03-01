@@ -1,16 +1,16 @@
-#ifndef ULTRASONIC_H
-#define ULTRASONIC_H
+#ifndef ULTRASONICSENSOR_H
+#define ULTRASONICSENSOR_H
 
 #include <Arduino.h>
 
 #include "mode.h"
 
-class RGB;
+class StatusLeds;
 
 class UltrasonicSensor {
  public:
   UltrasonicSensor(CarState& state);
-  void init(RGB& rgb);
+  void init(StatusLeds& leds);
   void checkObstacle();
   void getDistance();
   void obstacleAvoidanceMode();
@@ -25,7 +25,7 @@ class UltrasonicSensor {
 
  private:
   CarState& state_;
-  RGB* rgb_;
+  StatusLeds* leds_;
 
   bool left_flag_[10];
   unsigned char left_count_flag_;
