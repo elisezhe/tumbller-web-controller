@@ -92,13 +92,20 @@ platformio run
 
 ### Upload
 
-Connect the Nano via USB (`/dev/ttyUSB0` by default) and run:
+Connect the Nano via USB and run:
 
 ```bash
 platformio run --target upload
 ```
 
-The upload port can be changed in `platformio.ini`.
+PlatformIO auto-detects the serial port. To override (e.g. when multiple
+devices are connected):
+
+```bash
+platformio run --target upload --upload-port /dev/ttyUSB0
+```
+
+Or set `upload_port` in `platformio.ini`.
 
 ### Format
 
@@ -107,6 +114,20 @@ make format
 ```
 
 Requires `clang-format` on PATH.
+
+## Libraries
+
+All libraries ship in `lib/` (vendored from the original ELEGOO kit and
+PlatformIO registry). No additional downloads are needed.
+
+| Library | Version | License | Source |
+| --- | --- | --- | --- |
+| Adafruit NeoPixel | 1.15.4 | LGPL-3.0 | [GitHub](https://github.com/adafruit/Adafruit_NeoPixel) |
+| EnableInterrupt | 1.1.0 | Apache-2.0 | [GitHub](https://github.com/GreyGnome/EnableInterrupt) |
+| I2Cdev | 1.0.1 | MIT | [GitHub](https://github.com/jrowberg/i2cdevlib) |
+| MPU6050 | 1.0.0 | MIT | [GitHub](https://github.com/jrowberg/i2cdevlib) |
+| MsTimer2 | 1.1 | LGPL-2.1 | [GitHub](https://github.com/PaulStoffregen/MsTimer2) |
+| Wire | 1.0 | LGPL-2.1 | Arduino core (built-in) |
 
 ## Project Structure
 
