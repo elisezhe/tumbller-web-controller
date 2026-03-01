@@ -19,10 +19,10 @@ const int kBrightnessStep = 25;       // brightness increment/decrement
 const uint8_t kSelfRightSpeed = 110;  // motor PWM for self-right maneuver
 const int8_t kSelfRightAngleRef =
     30;                               // reference angle for self-right duration
-const uint8_t kSelfRightDivisor = 8;     // duration scaling divisor
+const uint8_t kSelfRightDivisor = 8;  // duration scaling divisor
 const unsigned long kSelfRightMaxMs = 500;  // cap self-right motor duration
-const uint8_t kObstacleNearCm = 20;      // back up if closer than this
-const uint8_t kObstacleSlowCm = 40;   // stop forward if closer than this
+const uint8_t kObstacleNearCm = 20;         // back up if closer than this
+const uint8_t kObstacleSlowCm = 40;         // stop forward if closer than this
 }  // namespace
 
 static Tumbller* tumbller_instance_ = nullptr;
@@ -337,7 +337,8 @@ void Tumbller::selfRight() {
   car.suppress_motor_output = true;
   motors.back(kSelfRightSpeed);
   float diff = car.kalmanfilter_angle - kSelfRightAngleRef;
-  unsigned long dur = static_cast<unsigned long>(diff * diff / kSelfRightDivisor);
+  unsigned long dur =
+      static_cast<unsigned long>(diff * diff / kSelfRightDivisor);
   if (dur > kSelfRightMaxMs)
     dur = kSelfRightMaxMs;
   delay(dur);

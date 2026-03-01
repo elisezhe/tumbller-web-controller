@@ -24,7 +24,8 @@ class WheelEncoder {
   int readAndReset();
 
  private:
-  volatile unsigned long ticks_;
+  /// reset every 5ms — small count, but 16-bit for safety
+  volatile uint16_t ticks_;
   int accumulated_;
 
   /// Per-instance ISR dispatch.

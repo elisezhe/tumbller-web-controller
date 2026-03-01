@@ -19,7 +19,7 @@ void WheelEncoder::init(uint8_t pin, bool use_pcint) {
 
 void WheelEncoder::update(float pwm) {
   noInterrupts();
-  unsigned long t = ticks_;
+  uint16_t t = ticks_;  // 16-bit: needs atomic guard on AVR
   ticks_ = 0;
   interrupts();
   accumulated_ += (pwm < 0) ? -static_cast<int>(t) : static_cast<int>(t);
