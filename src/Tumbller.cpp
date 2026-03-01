@@ -15,13 +15,12 @@ const uint32_t kStartSettleMs = 2000;   // START -> STANDBY settling timeout
 const uint32_t kStartDebounceMs = 500;  // debounce for manual start command
 const int16_t kDefaultBrightness = 50;  // LED brightness on reset
 const int16_t kBrightnessStep = 25;     // brightness increment/decrement
-const uint8_t kSelfRightSpeed = 110;    // motor PWM for self-right maneuver
-const int8_t kSelfRightAngleRef =
-    30;                               // reference angle for self-right duration
-const uint8_t kSelfRightDivisor = 8;  // duration scaling divisor
-const uint32_t kSelfRightMaxMs = 500;  // cap self-right motor duration
-const uint8_t kObstacleNearCm = 20;    // back up if closer than this
-const uint8_t kObstacleSlowCm = 40;    // stop forward if closer than this
+const uint8_t kStandUpSpeed = 110;      // motor PWM for stand-up maneuver
+const int8_t kStandUpAngleRef = 30;     // reference angle for stand-up duration
+const uint8_t kStandUpDivisor = 8;      // duration scaling divisor
+const uint32_t kStandUpMaxMs = 500;     // cap stand-up motor duration
+const uint8_t kObstacleNearCm = 20;     // back up if closer than this
+const uint8_t kObstacleSlowCm = 40;     // stop forward if closer than this
 }  // namespace
 
 static Tumbller* tumbller_instance_ = nullptr;
@@ -51,7 +50,10 @@ Tumbller::Tumbller()
       behavior_ready_(false),
       behavior_start_time_(0),
       low_voltage_(false),
-      auto_started_(false) {
+      auto_started_(false),
+      stand_up_active_(false),
+      stand_up_start_(0),
+      stand_up_duration_(0) {
   tumbller_instance_ = this;
 }
 
@@ -71,6 +73,7 @@ void Tumbller::loop() {
   input.getKeyValue();
   input.getBluetoothData();
   keyEventHandle();
+  standUpUpdate();
   ultrasonic.getDistance();
   voltage.update();
   handleVoltage();
@@ -252,7 +255,7 @@ void Tumbller::keyEventHandle() {
 
     // Self-right maneuver
     case '4':
-      selfRight();
+      standUp();
       break;
 
     // Startup
@@ -330,20 +333,29 @@ void Tumbller::cycleAnimation() {
   } while (true);
 }
 
-void Tumbller::selfRight() {
+void Tumbller::standUp() {
   state.function_mode = IDLE;
   state.motion_mode = STOP;
   car.suppress_motor_output = true;
-  motors.back(kSelfRightSpeed);
-  float diff = car.kalmanfilter_angle - kSelfRightAngleRef;
-  uint32_t dur = static_cast<uint32_t>(diff * diff / kSelfRightDivisor);
-  if (dur > kSelfRightMaxMs)
-    dur = kSelfRightMaxMs;
-  delay(dur);  // blocking: up to kSelfRightMaxMs (500ms) for recovery maneuver
+  motors.back(kStandUpSpeed);
+  float diff = car.kalmanfilter_angle - kStandUpAngleRef;
+  stand_up_duration_ = static_cast<uint32_t>(diff * diff / kStandUpDivisor);
+  if (stand_up_duration_ > kStandUpMaxMs)
+    stand_up_duration_ = kStandUpMaxMs;
+  stand_up_start_ = millis();
+  stand_up_active_ = true;
+}
+
+void Tumbller::standUpUpdate() {
+  if (!stand_up_active_)
+    return;
+  if (millis() - stand_up_start_ < stand_up_duration_)
+    return;
   motors.stop();
   car.suppress_motor_output = false;
   start_prev_time = millis();
   leds.solid(StatusLeds::Color(255, 0, 0));
+  stand_up_active_ = false;
 }
 
 void Tumbller::adjustBrightness(int16_t delta) {

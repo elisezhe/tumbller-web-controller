@@ -38,13 +38,17 @@ class Tumbller {
                       uint8_t stop_dist);
   void startBehavior(FUNCTION_MODE mode);
   void cycleAnimation();
-  void selfRight();
+  void standUp();
+  void standUpUpdate();
   void adjustBrightness(int16_t delta);
 
   bool behavior_ready_;
   uint32_t behavior_start_time_;
   bool low_voltage_;
   bool auto_started_;
+  bool stand_up_active_;
+  uint32_t stand_up_start_;
+  uint32_t stand_up_duration_;
 };
 
 #endif
