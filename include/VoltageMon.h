@@ -3,21 +3,26 @@
 
 #include <Arduino.h>
 
-#include "mode.h"
+enum VoltageLevel : uint8_t { VOLTAGE_OK, VOLTAGE_LOW, VOLTAGE_CRITICAL };
 
-class StatusLeds;
-
+/// Pure voltage sensor — reads battery ADC, reports level.
+/// No actuation, no LED control, no state mutation.
 class VoltageMon {
  public:
-  VoltageMon(CarState& state);
-  void init(StatusLeds& leds);
-  void measure();
+  VoltageMon();
+  void init();
+
+  /// Read ADC every 1000ms, update cached level.
+  void update();
+
+  /// Current cached voltage level.
+  VoltageLevel level() const {
+    return level_;
+  }
 
  private:
-  CarState& state_;
-  StatusLeds* leds_;
-  int low_voltage_flag_;
-  unsigned long vol_measure_time_;
+  VoltageLevel level_;
+  unsigned long measure_time_;
 };
 
 #endif

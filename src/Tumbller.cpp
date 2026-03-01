@@ -23,12 +23,12 @@ static bool abortCheck() {
 Tumbller::Tumbller()
     : input(state),
       car(state),
-      voltage(state),
       start_prev_time(0),
       print_time(0),
       start_time(0),
       behavior_ready_(false),
-      behavior_start_time_(0) {
+      behavior_start_time_(0),
+      low_voltage_(false) {
   tumbller_instance_ = this;
 }
 
@@ -38,7 +38,7 @@ void Tumbller::setup() {
   ultrasonic.init();
   input.init();
   leds.init(abortCheck);
-  voltage.init(leds);
+  voltage.init();
   start_prev_time = millis();
   car.init(motors);
 }
@@ -48,7 +48,8 @@ void Tumbller::loop() {
   input.getBluetoothData();
   keyEventHandle();
   ultrasonic.getDistance();
-  voltage.measure();
+  voltage.update();
+  handleVoltage();
   setMotionState();
   functionMode();
   ultrasonic.checkObstacle();
@@ -419,5 +420,26 @@ void Tumbller::followBehavior(uint8_t backup_dist, uint8_t follow_dist,
   } else {
     state.motion_mode = STANDBY;
     leds.lightOff();
+  }
+}
+
+void Tumbller::handleVoltage() {
+  VoltageLevel v = voltage.level();
+  if (v == VOLTAGE_OK) {
+    if (low_voltage_) {
+      leds.lightOff();
+      motors.enable();
+      low_voltage_ = false;
+    }
+  } else {
+    if (v == VOLTAGE_CRITICAL) {
+      state.motion_mode = STOP;
+      motors.disable();
+    }
+    if (state.motion_mode == STANDBY || state.motion_mode == STOP ||
+        state.motion_mode == START) {
+      leds.flash(StatusLeds::Color(255, 0, 0), DIR_ALL);
+    }
+    low_voltage_ = true;
   }
 }

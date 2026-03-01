@@ -32,12 +32,14 @@ class Tumbller {
   void functionMode();
   void setMotionState();
   void keyEventHandle();
+  void handleVoltage();
   void obstacleAvoidance();
   void followBehavior(uint8_t backup_dist, uint8_t follow_dist,
                       uint8_t stop_dist);
 
   bool behavior_ready_;
   unsigned long behavior_start_time_;
+  bool low_voltage_;
 };
 
 #endif
