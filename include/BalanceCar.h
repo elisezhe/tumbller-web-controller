@@ -42,7 +42,6 @@ class BalanceCar {
   volatile unsigned long encoder_count_right_a_;
   volatile unsigned long encoder_count_left_a_;
   int16_t ax_, ay_, az_, gx_, gy_, gz_;
-  float dt_, Q_angle_, Q_gyro_, R_angle_, C_0_, K1_;
 
   int encoder_left_pulse_num_speed_;
   int encoder_right_pulse_num_speed_;

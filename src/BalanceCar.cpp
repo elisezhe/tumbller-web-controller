@@ -36,12 +36,6 @@ BalanceCar::BalanceCar(CarState& state)
       gx_(0),
       gy_(0),
       gz_(0),
-      dt_(0.005),
-      Q_angle_(0.001),
-      Q_gyro_(0.005),
-      R_angle_(0.5),
-      C_0_(1),
-      K1_(0.05),
       encoder_left_pulse_num_speed_(0),
       encoder_right_pulse_num_speed_(0),
       speed_control_output_(0),
@@ -67,6 +61,7 @@ void BalanceCar::init(InputHandler& input) {
 
   Wire.begin();
   mpu_.initialize();
+  kalmanfilter.init(0.005, 0.001, 0.005, 0.5, 1, 128.1);
 
   enableInterrupt(ENCODER_LEFT_A_PIN | PINCHANGEINTERRUPT, encoderLeftISR,
                   CHANGE);
@@ -123,14 +118,13 @@ void BalanceCar::balance() {
   encoder_count_right_a_ = 0;
 
   mpu_.getMotion6(&ax_, &ay_, &az_, &gx_, &gy_, &gz_);
-  kalmanfilter.Angle(ax_, ay_, az_, gx_, gy_, gz_, dt_, Q_angle_, Q_gyro_,
-                     R_angle_, C_0_, K1_);
+  kalmanfilter.process(ax_, ay_, az_, gx_, gy_, gz_);
   kalmanfilter_angle = kalmanfilter.angle;
 
   // Balance PID
   double balance_control_output =
       kp_balance_ * (kalmanfilter_angle - angle_zero_) +
-      kd_balance_ * (kalmanfilter.Gyro_x - angular_velocity_zero_);
+      kd_balance_ * (kalmanfilter.gyro_x - angular_velocity_zero_);
 
   // Speed PID (every 8 cycles = 40ms)
   speed_control_period_count_++;
@@ -151,7 +145,7 @@ void BalanceCar::balance() {
 
   // Turn control
   rotation_control_output_ =
-      setting_turn_speed + kd_turn_ * kalmanfilter.Gyro_z;
+      setting_turn_speed + kd_turn_ * kalmanfilter.gyro_z;
 
   // Compute PWM
   pwm_left_ =
