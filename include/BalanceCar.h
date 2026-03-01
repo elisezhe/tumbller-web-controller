@@ -18,8 +18,8 @@ class BalanceCar {
 
   KalmanFilter kalmanfilter;
   float kalmanfilter_angle;
-  char balance_angle_min;
-  char balance_angle_max;
+  int8_t balance_angle_min;
+  int8_t balance_angle_max;
   // PORT(RPi): replace volatile int8_t with std::atomic<int> — int8_t was
   // chosen for single-byte AVR atomicity; on ARM use proper atomics.
   volatile int8_t setting_car_speed;   // written from loop(), read from ISR
@@ -47,11 +47,11 @@ class BalanceCar {
   WheelEncoder encoder_right_;
   int16_t ax_, ay_, az_, gx_, gy_, gz_;
 
-  unsigned long last_micros_;
+  uint32_t last_micros_;
   float speed_dt_;
   float speed_control_output_;
   float speed_filter_;
-  int speed_control_period_count_;
+  uint8_t speed_control_period_count_;
   float pwm_left_;
   float pwm_right_;
 

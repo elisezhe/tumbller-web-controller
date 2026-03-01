@@ -61,7 +61,7 @@ void StatusLeds::flash(uint32_t color, LedDirection dir) {
   }
 }
 
-void StatusLeds::blink(unsigned long interval) {
+void StatusLeds::blink(uint32_t interval) {
   if ((millis() - blink_prev_millis_ < interval) && (blink_phase_ == 0)) {
     blink_phase_ = 1;
     for (uint8_t i = 0; i < NUMPIXELS; i++)
@@ -82,8 +82,8 @@ void StatusLeds::blink(unsigned long interval) {
 
 // --- Interruptible delay ---
 
-bool StatusLeds::interruptibleDelay(unsigned long wait) {
-  unsigned long start = millis();
+bool StatusLeds::interruptibleDelay(uint32_t wait) {
+  uint32_t start = millis();
   while (millis() - start < wait) {
     if (abort_check_ && abort_check_()) {
       return true;
@@ -110,7 +110,7 @@ uint32_t StatusLeds::wheel(uint8_t pos) {
 // --- Blocking animations ---
 
 bool StatusLeds::pulseWhite(uint8_t wait) {
-  for (int j = 0; j < 256; j++) {
+  for (int16_t j = 0; j < 256; j++) {
     uint8_t g = gamma8(j);
     for (uint16_t i = 0; i < numPixels(); i++) {
       setPixelColor(i, Color(0, 0, 0, g));
@@ -119,7 +119,7 @@ bool StatusLeds::pulseWhite(uint8_t wait) {
       return true;
     show();
   }
-  for (int j = 255; j >= 0; j--) {
+  for (int16_t j = 255; j >= 0; j--) {
     uint8_t g = gamma8(j);
     for (uint16_t i = 0; i < numPixels(); i++) {
       setPixelColor(i, Color(0, 0, 0, g));
@@ -132,8 +132,8 @@ bool StatusLeds::pulseWhite(uint8_t wait) {
 }
 
 bool StatusLeds::theaterChase(uint8_t r, uint8_t g, uint8_t b, uint8_t wait) {
-  for (int j = 0; j < 200; j++) {
-    for (int q = 0; q < 3; q++) {
+  for (int16_t j = 0; j < 200; j++) {
+    for (int16_t q = 0; q < 3; q++) {
       for (uint16_t i = 0; i < numPixels(); i = i + 3) {
         setPixelColor(i + q, Color(r, g, b));
       }
@@ -175,9 +175,9 @@ bool StatusLeds::rainbowCycle(uint8_t wait) {
 }
 
 bool StatusLeds::theaterChaseRainbow(uint8_t wait) {
-  for (int k = 0; k < 30; k++) {
-    for (int j = 0; j < 256; j++) {
-      for (int q = 0; q < 3; q++) {
+  for (int16_t k = 0; k < 30; k++) {
+    for (int16_t j = 0; j < 256; j++) {
+      for (int16_t q = 0; q < 3; q++) {
         for (uint16_t i = 0; i < numPixels(); i = i + 3) {
           setPixelColor(i + q, wheel((i + j) % 255));
         }
@@ -193,14 +193,14 @@ bool StatusLeds::theaterChaseRainbow(uint8_t wait) {
   return false;
 }
 
-bool StatusLeds::rainbowFade2White(uint8_t wait, int rainbowLoops,
-                                   int whiteLoops) {
+bool StatusLeds::rainbowFade2White(uint8_t wait, int16_t rainbowLoops,
+                                   int16_t whiteLoops) {
   float fadeMax = 100.0;
-  int fadeVal = 0;
+  int16_t fadeVal = 0;
   uint32_t wheelVal;
-  int redVal, greenVal, blueVal;
-  for (int k = 0; k < rainbowLoops; k++) {
-    for (int j = 0; j < 256; j++) {
+  int16_t redVal, greenVal, blueVal;
+  for (int16_t k = 0; k < rainbowLoops; k++) {
+    for (int16_t j = 0; j < 256; j++) {
       for (uint16_t i = 0; i < numPixels(); i++) {
         wheelVal = wheel(((i * 256 / numPixels()) + j) & 255);
         redVal = ((wheelVal >> 16) & 0xFF) * float(fadeVal / fadeMax);
@@ -222,8 +222,8 @@ bool StatusLeds::rainbowFade2White(uint8_t wait, int rainbowLoops,
   if (interruptibleDelay(500))
     return true;
 
-  for (int k = 0; k < whiteLoops; k++) {
-    for (int j = 0; j < 256; j++) {
+  for (int16_t k = 0; k < whiteLoops; k++) {
+    for (int16_t j = 0; j < 256; j++) {
       for (uint16_t i = 0; i < numPixels(); i++) {
         setPixelColor(i, Color(0, 0, 0, gamma8(j)));
       }
@@ -231,7 +231,7 @@ bool StatusLeds::rainbowFade2White(uint8_t wait, int rainbowLoops,
     }
     if (interruptibleDelay(2000))
       return true;
-    for (int j = 255; j >= 0; j--) {
+    for (int16_t j = 255; j >= 0; j--) {
       for (uint16_t i = 0; i < numPixels(); i++) {
         setPixelColor(i, Color(0, 0, 0, gamma8(j)));
       }
@@ -249,14 +249,14 @@ bool StatusLeds::whiteOverRainbow(uint8_t wait, uint8_t whiteSpeed,
   if (whiteLength >= numPixels())
     whiteLength = numPixels() - 1;
 
-  unsigned int head = whiteLength - 1;
-  unsigned int tail = 0;
+  uint16_t head = whiteLength - 1;
+  uint16_t tail = 0;
 
-  int loops = 100;
-  int loopNum = 0;
+  int16_t loops = 100;
+  int16_t loopNum = 0;
 
   while (true) {
-    for (int j = 0; j < 256; j++) {
+    for (int16_t j = 0; j < 256; j++) {
       for (uint16_t i = 0; i < numPixels(); i++) {
         if ((i >= tail && i <= head) || (tail > head && i >= tail) ||
             (tail > head && i <= head)) {

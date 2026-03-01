@@ -22,7 +22,7 @@ class VoltageMon {
 
  private:
   VoltageLevel level_;
-  unsigned long measure_time_;
+  uint32_t measure_time_;
 };
 
 #endif

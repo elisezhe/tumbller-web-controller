@@ -3,26 +3,25 @@
 #include "Pins.h"
 
 namespace {
-const unsigned long kSerialBaud = 9600;
-const unsigned long kBlinkIntervalMs = 100;  // LED blink toggle period
-const unsigned long kPrintIntervalMs = 100;  // serial debug output interval
-const unsigned long kStartupGuardMs = 10;    // ignore input during first N ms
-const unsigned long kAutoStartMs = 2000;     // auto-send '5' command after boot
-const unsigned long kBehaviorWarmupMs =
-    2000;  // settling time before autonomous mode
-const unsigned long kStopRecoveryMs = 1000;  // STOP -> STANDBY recovery timeout
-const unsigned long kStartSettleMs = 2000;  // START -> STANDBY settling timeout
-const unsigned long kStartDebounceMs =
-    500;                              // debounce for manual start command
-const int kDefaultBrightness = 50;    // LED brightness on reset
-const int kBrightnessStep = 25;       // brightness increment/decrement
-const uint8_t kSelfRightSpeed = 110;  // motor PWM for self-right maneuver
+const uint32_t kSerialBaud = 9600;
+const uint32_t kBlinkIntervalMs = 100;  // LED blink toggle period
+const uint32_t kPrintIntervalMs = 100;  // serial debug output interval
+const uint32_t kStartupGuardMs = 10;    // ignore input during first N ms
+const uint32_t kAutoStartMs = 2000;     // auto-send '5' command after boot
+const uint32_t kBehaviorWarmupMs =
+    2000;                               // settling time before autonomous mode
+const uint32_t kStopRecoveryMs = 1000;  // STOP -> STANDBY recovery timeout
+const uint32_t kStartSettleMs = 2000;   // START -> STANDBY settling timeout
+const uint32_t kStartDebounceMs = 500;  // debounce for manual start command
+const int16_t kDefaultBrightness = 50;  // LED brightness on reset
+const int16_t kBrightnessStep = 25;     // brightness increment/decrement
+const uint8_t kSelfRightSpeed = 110;    // motor PWM for self-right maneuver
 const int8_t kSelfRightAngleRef =
     30;                               // reference angle for self-right duration
 const uint8_t kSelfRightDivisor = 8;  // duration scaling divisor
-const unsigned long kSelfRightMaxMs = 500;  // cap self-right motor duration
-const uint8_t kObstacleNearCm = 20;         // back up if closer than this
-const uint8_t kObstacleSlowCm = 40;         // stop forward if closer than this
+const uint32_t kSelfRightMaxMs = 500;  // cap self-right motor duration
+const uint8_t kObstacleNearCm = 20;    // back up if closer than this
+const uint8_t kObstacleSlowCm = 40;    // stop forward if closer than this
 }  // namespace
 
 static Tumbller* tumbller_instance_ = nullptr;
@@ -337,8 +336,7 @@ void Tumbller::selfRight() {
   car.suppress_motor_output = true;
   motors.back(kSelfRightSpeed);
   float diff = car.kalmanfilter_angle - kSelfRightAngleRef;
-  unsigned long dur =
-      static_cast<unsigned long>(diff * diff / kSelfRightDivisor);
+  uint32_t dur = static_cast<uint32_t>(diff * diff / kSelfRightDivisor);
   if (dur > kSelfRightMaxMs)
     dur = kSelfRightMaxMs;
   delay(dur);
@@ -348,7 +346,7 @@ void Tumbller::selfRight() {
   leds.solid(StatusLeds::Color(255, 0, 0));
 }
 
-void Tumbller::adjustBrightness(int delta) {
+void Tumbller::adjustBrightness(int16_t delta) {
   leds.solid(StatusLeds::Color(255, 0, 0));
   leds.brightness = constrain(leds.brightness + delta, 0, 255);
   leds.setBrightness(leds.brightness);

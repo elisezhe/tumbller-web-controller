@@ -4,11 +4,10 @@
 #include "Pins.h"
 
 namespace {
-const float kSoundUsPerCm = 58.2;    // round-trip microseconds per cm
-const float kMaxDistanceCm = 600.0;  // cap readings beyond this
-const unsigned long kDistanceIntervalMs =
-    100;  // minimum ms between distance pings
-const unsigned long kObstacleCheckIntervalMs =
+const float kSoundUsPerCm = 58.2;          // round-trip microseconds per cm
+const float kMaxDistanceCm = 600.0;        // cap readings beyond this
+const uint32_t kDistanceIntervalMs = 100;  // minimum ms between distance pings
+const uint32_t kObstacleCheckIntervalMs =
     50;                             // minimum ms between IR obstacle checks
 const uint8_t kIrPulseCount = 39;   // pulses per 38 kHz burst (~1ms)
 const uint8_t kIrHalfPeriodUs = 9;  // half-period for ~38 kHz carrier
@@ -16,7 +15,7 @@ const uint8_t kIrSettleMs = 2;      // settle time after IR burst
 const uint8_t kObstacleHitThreshold = 2;  // min ISR hits to flag obstacle
 const uint8_t kFilterMajority =
     3;  // min positive samples (out of 10) to declare
-const unsigned long kObstacleWindowMs = 50;  // sliding window for hit counting
+const uint32_t kObstacleWindowMs = 50;  // sliding window for hit counting
 }  // namespace
 
 UltrasonicSensor* UltrasonicSensor::instance_ = nullptr;
@@ -96,7 +95,7 @@ void UltrasonicSensor::rightFilter(bool value) {
   if (right_index_ >= 10)
     right_index_ = 0;
   right_count_flag_ = 0;
-  for (unsigned char i = 0; i < 10; i++) {
+  for (uint8_t i = 0; i < 10; i++) {
     if (right_flag_[i])
       right_count_flag_++;
   }
@@ -108,14 +107,14 @@ void UltrasonicSensor::leftFilter(bool value) {
   if (left_index_ >= 10)
     left_index_ = 0;
   left_count_flag_ = 0;
-  for (unsigned char i = 0; i < 10; i++) {
+  for (uint8_t i = 0; i < 10; i++) {
     if (left_flag_[i])
       left_count_flag_++;
   }
 }
 
-void UltrasonicSensor::send38K(int pin) {
-  for (int i = 0; i < kIrPulseCount; i++) {
+void UltrasonicSensor::send38K(uint8_t pin) {
+  for (uint8_t i = 0; i < kIrPulseCount; i++) {
     digitalWrite(pin, LOW);
     delayMicroseconds(kIrHalfPeriodUs);
     digitalWrite(pin, HIGH);

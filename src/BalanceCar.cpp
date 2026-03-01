@@ -116,7 +116,7 @@ void BalanceCar::balance() {
   sei();
 
   // Measure actual elapsed time
-  unsigned long now = micros();
+  uint32_t now = micros();
   float dt = (now - last_micros_) * 1e-6f;
   last_micros_ = now;
   if (dt <= 0 || dt > kDtMax)

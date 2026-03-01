@@ -23,11 +23,12 @@ void WheelEncoder::update(float pwm) {
   uint16_t t = ticks_;  // 16-bit: needs atomic guard on AVR
   ticks_ = 0;
   interrupts();
-  accumulated_ += (pwm < 0) ? -static_cast<int>(t) : static_cast<int>(t);
+  accumulated_ +=
+      (pwm < 0) ? -static_cast<int16_t>(t) : static_cast<int16_t>(t);
 }
 
-int WheelEncoder::readAndReset() {
-  int val = accumulated_;
+int16_t WheelEncoder::readAndReset() {
+  int16_t val = accumulated_;
   accumulated_ = 0;
   return val;
 }

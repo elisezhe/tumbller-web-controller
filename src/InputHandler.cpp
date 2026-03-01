@@ -4,8 +4,8 @@
 #include "Pins.h"
 
 namespace {
-const unsigned long kKeyDebounceMs = 500;  // minimum time between key presses
-const uint8_t kNumKeyModes = 5;            // number of key-button cycling modes
+const uint32_t kKeyDebounceMs = 500;  // minimum time between key presses
+const uint8_t kNumKeyModes = 5;       // number of key-button cycling modes
 }  // namespace
 
 InputHandler* InputHandler::instance_ = nullptr;
@@ -41,7 +41,7 @@ void InputHandler::onKeyPress() {
 }
 
 bool InputHandler::getKeyValue() {
-  char mode = key_mode_;  // atomic snapshot (8-bit on AVR)
+  uint8_t mode = key_mode_;  // atomic snapshot (8-bit on AVR)
   if (prev_key_mode_ != mode) {
     prev_key_mode_ = mode;
     switch (mode) {

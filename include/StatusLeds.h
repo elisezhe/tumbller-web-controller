@@ -27,7 +27,7 @@ class StatusLeds : public Adafruit_NeoPixel {
   void lightOff();
   void solid(uint32_t color);
   void flash(uint32_t color, LedDirection dir);
-  void blink(unsigned long interval);
+  void blink(uint32_t interval);
 
   // Blocking animations (return true if interrupted by input)
   bool pulseWhite(uint8_t wait);
@@ -35,21 +35,22 @@ class StatusLeds : public Adafruit_NeoPixel {
   bool rainbow(uint8_t wait);
   bool rainbowCycle(uint8_t wait);
   bool theaterChaseRainbow(uint8_t wait);
-  bool rainbowFade2White(uint8_t wait, int rainbowLoops, int whiteLoops);
+  bool rainbowFade2White(uint8_t wait, int16_t rainbowLoops,
+                         int16_t whiteLoops);
   bool whiteOverRainbow(uint8_t wait, uint8_t whiteSpeed, uint8_t whiteLength);
 
-  int brightness;
-  char animation_index;
+  int16_t brightness;
+  int8_t animation_index;
 
  private:
   uint32_t led_on_[NUMPIXELS];
   uint32_t led_off_[NUMPIXELS];
   AbortCheckFn abort_check_;
   uint8_t blink_phase_;
-  unsigned long blink_prev_millis_;
-  unsigned long white_rainbow_last_time_;
+  uint32_t blink_prev_millis_;
+  uint32_t white_rainbow_last_time_;
 
-  bool interruptibleDelay(unsigned long wait);
+  bool interruptibleDelay(uint32_t wait);
   uint32_t wheel(uint8_t pos);
 };
 

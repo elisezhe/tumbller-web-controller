@@ -3,7 +3,7 @@
 #include "Pins.h"
 
 namespace {
-const unsigned long kMeasureIntervalMs = 1000;
+const uint32_t kMeasureIntervalMs = 1000;
 const float kAdcRefVoltage = 1.1;     // ATmega328P INTERNAL reference (volts)
 const float kAdcResolution = 1024.0;  // 10-bit ADC
 const float kDividerR1 = 10.0;  // upper resistor in voltage divider (kOhm)

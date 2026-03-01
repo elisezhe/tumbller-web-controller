@@ -20,9 +20,9 @@ class Tumbller {
   UltrasonicSensor ultrasonic;
   VoltageMon voltage;
 
-  unsigned long start_prev_time;
-  unsigned long print_time;
-  unsigned long start_time;
+  uint32_t start_prev_time;
+  uint32_t print_time;
+  uint32_t start_time;
 
   Tumbller();
   void setup();
@@ -39,10 +39,10 @@ class Tumbller {
   void startBehavior(FUNCTION_MODE mode);
   void cycleAnimation();
   void selfRight();
-  void adjustBrightness(int delta);
+  void adjustBrightness(int16_t delta);
 
   bool behavior_ready_;
-  unsigned long behavior_start_time_;
+  uint32_t behavior_start_time_;
   bool low_voltage_;
   bool auto_started_;
 };

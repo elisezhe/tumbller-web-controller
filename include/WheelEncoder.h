@@ -21,14 +21,14 @@ class WheelEncoder {
   void update(float pwm);
 
   /// Return accumulated signed pulses since the last reset, then reset.
-  int readAndReset();
+  int16_t readAndReset();
 
  private:
   // PORT(RPi): replace with std::atomic<uint16_t> and remove
   // noInterrupts()/interrupts() guard in update().
   /// reset every 5ms — small count, but 16-bit for safety
   volatile uint16_t ticks_;
-  int accumulated_;
+  int16_t accumulated_;
 
   /// Per-instance ISR dispatch.
   void tick();
