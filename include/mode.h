@@ -1,5 +1,4 @@
-enum FUNCTION_MODE
-{
+enum FUNCTION_MODE {
   IDLE,
   IRREMOTE,
   OBSTACLE,
@@ -8,8 +7,7 @@ enum FUNCTION_MODE
   FOLLOW2,
 } function_mode = IDLE;
 
-enum MOTION_MODE
-{
+enum MOTION_MODE {
   STANDBY,
   FORWARD,
   BACKWARD,

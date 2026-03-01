@@ -1,13 +1,19 @@
 #include "MPU6050.h"
-MPU6050::MPU6050() { devAddr = MPU6050_DEFAULT_ADDRESS; }
-MPU6050::MPU6050(uint8_t address) { devAddr = address; }
+MPU6050::MPU6050() {
+  devAddr = MPU6050_DEFAULT_ADDRESS;
+}
+MPU6050::MPU6050(uint8_t address) {
+  devAddr = address;
+}
 void MPU6050::initialize() {
   setClockSource(MPU6050_CLOCK_PLL_XGYRO);
   setFullScaleGyroRange(MPU6050_GYRO_FS_250);
   setFullScaleAccelRange(MPU6050_ACCEL_FS_2);
   setSleepEnabled(false);
 }
-bool MPU6050::testConnection() { return getDeviceID() == 0x34; }
+bool MPU6050::testConnection() {
+  return getDeviceID() == 0x34;
+}
 uint8_t MPU6050::getAuxVDDIOLevel() {
   I2Cdev::readBit(devAddr, MPU6050_RA_YG_OFFS_TC, MPU6050_TC_PWR_MODE_BIT,
                   buffer);
