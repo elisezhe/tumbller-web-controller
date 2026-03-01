@@ -36,21 +36,21 @@ class BalanceCar {
   MotorDriver* motors_;
   MPU6050 mpu_;
 
-  double angle_zero_;
-  double angular_velocity_zero_;
+  float angle_zero_;
+  float angular_velocity_zero_;
 
   WheelEncoder encoder_left_;
   WheelEncoder encoder_right_;
   int16_t ax_, ay_, az_, gx_, gy_, gz_;
 
   unsigned long last_micros_;
-  double speed_dt_;
-  double speed_control_output_;
-  double speed_filter_;
+  float speed_dt_;
+  float speed_control_output_;
+  float speed_filter_;
   int speed_control_period_count_;
-  double speed_filter_old_;
-  double pwm_left_;
-  double pwm_right_;
+  float speed_filter_old_;
+  float pwm_left_;
+  float pwm_right_;
 
   void balance();
 

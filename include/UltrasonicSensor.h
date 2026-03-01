@@ -12,7 +12,7 @@ class UltrasonicSensor {
   void checkObstacle();
   void getDistance();
 
-  double distance_value;
+  float distance_value;
   bool left_is_obstacle;
   bool right_is_obstacle;
 

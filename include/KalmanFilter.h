@@ -25,7 +25,7 @@ class KalmanFilter {
   float gyro_z;  // Processed Z gyro rate (deg/s)
 
  private:
-  void update(double angle_m, double gyro_m);
+  void update(float angle_m, float gyro_m);
 
   float dt_;
   float Q_angle_;

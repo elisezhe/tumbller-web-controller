@@ -18,7 +18,7 @@ class WheelEncoder {
   /// using the sign of the current PWM to determine direction, then resets
   /// the raw tick counter.
   /// @param pwm  Current PWM value (sign gives direction).
-  void update(double pwm);
+  void update(float pwm);
 
   /// Return accumulated signed pulses since the last reset, then reset.
   int readAndReset();

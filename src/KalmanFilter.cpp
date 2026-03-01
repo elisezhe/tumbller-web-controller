@@ -57,7 +57,7 @@ void KalmanFilter::process(int16_t ax, int16_t ay, int16_t az, int16_t gx,
   process(ax, ay, az, gx, gy, gz);
 }
 
-void KalmanFilter::update(double angle_m, double gyro_m) {
+void KalmanFilter::update(float angle_m, float gyro_m) {
   angle += (gyro_m - q_bias_) * dt_;
   angle_err_ = angle_m - angle;
   Pdot_[0] = Q_angle_ - P_[0][1] - P_[1][0];

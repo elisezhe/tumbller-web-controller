@@ -4,8 +4,8 @@
 #include "Pins.h"
 
 namespace {
-const double kSoundUsPerCm = 58.2;    // round-trip microseconds per cm
-const double kMaxDistanceCm = 600.0;  // cap readings beyond this
+const float kSoundUsPerCm = 58.2;    // round-trip microseconds per cm
+const float kMaxDistanceCm = 600.0;  // cap readings beyond this
 const unsigned long kDistanceIntervalMs =
     100;  // minimum ms between distance pings
 const unsigned long kObstacleCheckIntervalMs =

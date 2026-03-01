@@ -9,19 +9,19 @@
 namespace {
 // --- PID tuning gains ---
 // Balance PD: proportional on angle error, derivative on gyro rate.
-const double kBalanceKp = 55.0;
-const double kBalanceKd = 0.75;
+const float kBalanceKp = 55.0;
+const float kBalanceKd = 0.75;
 
 // Speed PI: P-on-measurement (avoids setpoint kick), I on error.
 // Ki is time-scaled (seconds); equivalent to 0.26 at fixed 40ms update rate.
-const double kSpeedKp = 10.0;
-const double kSpeedKi = 6.5;
-const double kSpeedIntegralLimit =
+const float kSpeedKp = 10.0;
+const float kSpeedKi = 6.5;
+const float kSpeedIntegralLimit =
     120.0;  // max |integral| (780 max PWM contribution)
 
 // Turn PD: feedforward on setpoint, derivative damping from yaw gyro.
-const double kTurnKp = 1.0;
-const double kTurnKd = 0.5;
+const float kTurnKp = 1.0;
+const float kTurnKd = 0.5;
 
 // --- Balance / fall detection ---
 const int8_t kFallAngleMin = -22;  // degrees — below this the robot is fallen
@@ -30,7 +30,7 @@ const int8_t kFallAngleMax = 22;   // degrees — above this the robot is fallen
 // --- Speed control loop ---
 const uint8_t kSpeedPidPeriod =
     8;  // ISR cycles between speed PID updates (~40ms)
-const double kSpeedFilterAlpha = 0.3;  // EMA weight for new encoder sample
+const float kSpeedFilterAlpha = 0.3;  // EMA weight for new encoder sample
 
 // --- PWM output ---
 const int16_t kPwmLimit = 255;  // max absolute PWM value (8-bit timer)
@@ -128,7 +128,7 @@ void BalanceCar::balance() {
   kalmanfilter_angle = kalmanfilter.angle;
 
   // Balance PID (Ki=0, dt has no effect on integral)
-  double balance_control_output =
+  float balance_control_output =
       pid_balance.compute(kalmanfilter_angle - angle_zero_, 0,
                           kalmanfilter.gyro_x - angular_velocity_zero_);
 
@@ -137,19 +137,19 @@ void BalanceCar::balance() {
   speed_control_period_count_++;
   if (speed_control_period_count_ >= kSpeedPidPeriod) {
     speed_control_period_count_ = 0;
-    double car_speed =
+    float car_speed =
         (encoder_left_.readAndReset() + encoder_right_.readAndReset()) * 0.5;
     speed_filter_ = speed_filter_old_ * (1.0 - kSpeedFilterAlpha) +
                     car_speed * kSpeedFilterAlpha;
     speed_filter_old_ = speed_filter_;
-    double speed_error = setting_car_speed - speed_filter_;
+    float speed_error = setting_car_speed - speed_filter_;
     speed_control_output_ =
         pid_speed.compute(-speed_filter_, speed_error, 0, speed_dt_);
     speed_dt_ = 0;
   }
 
   // Turn control (Ki=0, dt has no effect on integral)
-  double rotation_control_output =
+  float rotation_control_output =
       pid_turn.compute(setting_turn_speed, 0, kalmanfilter.gyro_z);
 
   // Compute PWM

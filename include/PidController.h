@@ -13,7 +13,7 @@
 ///   Feedforward + D  – compute(setpoint,    0, gyro)
 class PidController {
  public:
-  PidController(double kp, double ki, double kd, double integral_limit = 0);
+  PidController(float kp, float ki, float kd, float integral_limit = 0);
 
   /// Compute PID output.
   /// @param p_input  Signal multiplied by Kp.
@@ -21,20 +21,20 @@ class PidController {
   /// @param d_input  Signal multiplied by Kd.
   /// @param dt       Timestep scaling for the integral term (seconds).
   ///                 Default 1.0 preserves fixed-rate behavior.
-  double compute(double p_input, double i_input, double d_input = 0,
-                 double dt = 1.0);
+  float compute(float p_input, float i_input, float d_input = 0,
+                float dt = 1.0);
 
   void resetIntegral();
-  double integral() const {
+  float integral() const {
     return integral_;
   }
 
  private:
-  double kp_;
-  double ki_;
-  double kd_;
-  double integral_;
-  double integral_limit_;
+  float kp_;
+  float ki_;
+  float kd_;
+  float integral_;
+  float integral_limit_;
 };
 
 #endif
