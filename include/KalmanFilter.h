@@ -34,12 +34,9 @@ class KalmanFilter {
   float C_0_;
   float gyro_offset_;
 
-  float angle_err_;
   float q_bias_;
   float Pdot_[4];
   float P_[2][2];
-  float PCt_0_, PCt_1_, E_, K_0_, K_1_, t_0_, t_1_;
-  float angle_dot_;
 };
 
 #endif

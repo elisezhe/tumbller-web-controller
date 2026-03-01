@@ -6,8 +6,7 @@ StatusLeds::StatusLeds()
       animation_index(0),
       abort_check_(nullptr),
       blink_phase_(0),
-      blink_prev_millis_(0),
-      white_rainbow_last_time_(0) {
+      blink_prev_millis_(0) {
   memset(led_on_, 0, sizeof(led_on_));
   memset(led_off_, 0, sizeof(led_off_));
 }
@@ -254,6 +253,7 @@ bool StatusLeds::whiteOverRainbow(uint8_t wait, uint8_t whiteSpeed,
 
   int16_t loops = 100;
   int16_t loopNum = 0;
+  uint32_t last_time = millis();
 
   while (true) {
     for (int16_t j = 0; j < 256; j++) {
@@ -266,13 +266,13 @@ bool StatusLeds::whiteOverRainbow(uint8_t wait, uint8_t whiteSpeed,
         }
       }
 
-      if (millis() - white_rainbow_last_time_ > whiteSpeed) {
+      if (millis() - last_time > whiteSpeed) {
         head++;
         tail++;
         if (head == numPixels()) {
           loopNum++;
         }
-        white_rainbow_last_time_ = millis();
+        last_time = millis();
       }
 
       if (loopNum == loops)

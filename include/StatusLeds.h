@@ -48,7 +48,6 @@ class StatusLeds : public Adafruit_NeoPixel {
   AbortCheckFn abort_check_;
   uint8_t blink_phase_;
   uint32_t blink_prev_millis_;
-  uint32_t white_rainbow_last_time_;
 
   bool interruptibleDelay(uint32_t wait);
   uint32_t wheel(uint8_t pos);

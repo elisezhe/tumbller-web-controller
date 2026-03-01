@@ -45,7 +45,6 @@ class BalanceCar {
 
   WheelEncoder encoder_left_;
   WheelEncoder encoder_right_;
-  int16_t ax_, ay_, az_, gx_, gy_, gz_;
 
   uint32_t last_micros_;
   float speed_dt_;

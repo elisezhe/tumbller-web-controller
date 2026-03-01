@@ -16,16 +16,7 @@ KalmanFilter::KalmanFilter()
       R_angle_(0),
       C_0_(0),
       gyro_offset_(0),
-      angle_err_(0),
-      q_bias_(0),
-      PCt_0_(0),
-      PCt_1_(0),
-      E_(0),
-      K_0_(0),
-      K_1_(0),
-      t_0_(0),
-      t_1_(0),
-      angle_dot_(0) {
+      q_bias_(0) {
   memset(Pdot_, 0, sizeof(Pdot_));
   P_[0][0] = 1;
   P_[0][1] = 0;
@@ -59,7 +50,7 @@ void KalmanFilter::process(int16_t ax, int16_t ay, int16_t az, int16_t gx,
 
 void KalmanFilter::update(float angle_m, float gyro_m) {
   angle += (gyro_m - q_bias_) * dt_;
-  angle_err_ = angle_m - angle;
+  float angle_err = angle_m - angle;
   Pdot_[0] = Q_angle_ - P_[0][1] - P_[1][0];
   Pdot_[1] = -P_[1][1];
   Pdot_[2] = -P_[1][1];
@@ -68,18 +59,17 @@ void KalmanFilter::update(float angle_m, float gyro_m) {
   P_[0][1] += Pdot_[1] * dt_;
   P_[1][0] += Pdot_[2] * dt_;
   P_[1][1] += Pdot_[3] * dt_;
-  PCt_0_ = C_0_ * P_[0][0];
-  PCt_1_ = C_0_ * P_[1][0];
-  E_ = R_angle_ + C_0_ * PCt_0_;
-  K_0_ = PCt_0_ / E_;
-  K_1_ = PCt_1_ / E_;
-  t_0_ = PCt_0_;
-  t_1_ = C_0_ * P_[0][1];
-  P_[0][0] -= K_0_ * t_0_;
-  P_[0][1] -= K_0_ * t_1_;
-  P_[1][0] -= K_1_ * t_0_;
-  P_[1][1] -= K_1_ * t_1_;
-  angle += K_0_ * angle_err_;
-  q_bias_ += K_1_ * angle_err_;
-  angle_dot_ = gyro_m - q_bias_;
+  float PCt_0 = C_0_ * P_[0][0];
+  float PCt_1 = C_0_ * P_[1][0];
+  float E = R_angle_ + C_0_ * PCt_0;
+  float K_0 = PCt_0 / E;
+  float K_1 = PCt_1 / E;
+  float t_0 = PCt_0;
+  float t_1 = C_0_ * P_[0][1];
+  P_[0][0] -= K_0 * t_0;
+  P_[0][1] -= K_0 * t_1;
+  P_[1][0] -= K_1 * t_0;
+  P_[1][1] -= K_1 * t_1;
+  angle += K_0 * angle_err;
+  q_bias_ += K_1 * angle_err;
 }

@@ -73,12 +73,6 @@ BalanceCar::BalanceCar(CarState& state)
       angular_velocity_zero_(0),
       encoder_left_(),
       encoder_right_(),
-      ax_(0),
-      ay_(0),
-      az_(0),
-      gx_(0),
-      gy_(0),
-      gz_(0),
       last_micros_(0),
       speed_dt_(0),
       speed_control_output_(0),
@@ -125,8 +119,9 @@ void BalanceCar::balance() {
   encoder_left_.update(pwm_left_);
   encoder_right_.update(pwm_right_);
 
-  mpu_.getMotion6(&ax_, &ay_, &az_, &gx_, &gy_, &gz_);
-  kalmanfilter.process(ax_, ay_, az_, gx_, gy_, gz_, dt);
+  int16_t ax, ay, az, gx, gy, gz;
+  mpu_.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+  kalmanfilter.process(ax, ay, az, gx, gy, gz, dt);
   kalmanfilter_angle = kalmanfilter.angle;
 
   // Balance PID (Ki=0, dt has no effect on integral)
