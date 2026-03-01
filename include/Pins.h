@@ -4,7 +4,8 @@
 #define VOL_MEASURE_PIN A2
 #define ECHO_PIN A3
 #define TRIG_PIN 11
-#define RECV_PIN 9
+// RECV_PIN was pin 9 — removed: conflicts with IR_SEND_PIN (also pin 9)
+// and is not referenced anywhere in the codebase.
 #define NUMPIXELS 4
 #define RGB_PIN 3
 #define AIN1 7

@@ -41,9 +41,10 @@ void InputHandler::onKeyPress() {
 }
 
 bool InputHandler::getKeyValue() {
-  if (prev_key_mode_ != key_mode_) {
-    prev_key_mode_ = key_mode_;
-    switch (key_mode_) {
+  char mode = key_mode_;  // atomic snapshot (8-bit on AVR)
+  if (prev_key_mode_ != mode) {
+    prev_key_mode_ = mode;
+    switch (mode) {
       case 0:
         key_value = 's';
         state_.function_mode = IDLE;
@@ -83,8 +84,7 @@ bool InputHandler::getBluetoothData() {
           key_value == 'i' || key_value == 's' || key_value == '0' ||
           key_value == '1' || key_value == '2' || key_value == '3' ||
           key_value == '4' || key_value == '5' || key_value == '6' ||
-          key_value == '7' || key_value == '8' || key_value == '9' ||
-          key_value == '*' || key_value == '#') {
+          key_value == '7' || key_value == '8' || key_value == '9') {
         return true;
       }
     }

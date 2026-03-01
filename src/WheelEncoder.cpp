@@ -18,8 +18,10 @@ void WheelEncoder::init(uint8_t pin, bool use_pcint) {
 }
 
 void WheelEncoder::update(float pwm) {
+  noInterrupts();
   unsigned long t = ticks_;
   ticks_ = 0;
+  interrupts();
   accumulated_ += (pwm < 0) ? -static_cast<int>(t) : static_cast<int>(t);
 }
 

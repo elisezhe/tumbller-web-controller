@@ -17,7 +17,7 @@ class InputHandler {
 
  private:
   CarState& state_;
-  char key_mode_;
+  volatile char key_mode_;  // written from ISR, read from loop()
   char prev_key_mode_;
   unsigned long key_mode_time_;
 

@@ -84,7 +84,6 @@ BalanceCar::BalanceCar(CarState& state)
       speed_control_output_(0),
       speed_filter_(0),
       speed_control_period_count_(0),
-      speed_filter_old_(0),
       pwm_left_(0),
       pwm_right_(0) {
 }
@@ -139,9 +138,8 @@ void BalanceCar::balance() {
     speed_control_period_count_ = 0;
     float car_speed =
         (encoder_left_.readAndReset() + encoder_right_.readAndReset()) * 0.5;
-    speed_filter_ = speed_filter_old_ * (1.0 - kSpeedFilterAlpha) +
+    speed_filter_ = speed_filter_ * (1.0f - kSpeedFilterAlpha) +
                     car_speed * kSpeedFilterAlpha;
-    speed_filter_old_ = speed_filter_;
     float speed_error = setting_car_speed - speed_filter_;
     speed_control_output_ =
         pid_speed.compute(-speed_filter_, speed_error, 0, speed_dt_);

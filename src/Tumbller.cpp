@@ -19,8 +19,9 @@ const int kBrightnessStep = 25;       // brightness increment/decrement
 const uint8_t kSelfRightSpeed = 110;  // motor PWM for self-right maneuver
 const int8_t kSelfRightAngleRef =
     30;                               // reference angle for self-right duration
-const uint8_t kSelfRightDivisor = 8;  // duration scaling divisor
-const uint8_t kObstacleNearCm = 20;   // back up if closer than this
+const uint8_t kSelfRightDivisor = 8;     // duration scaling divisor
+const unsigned long kSelfRightMaxMs = 500;  // cap self-right motor duration
+const uint8_t kObstacleNearCm = 20;      // back up if closer than this
 const uint8_t kObstacleSlowCm = 40;   // stop forward if closer than this
 }  // namespace
 
@@ -50,7 +51,8 @@ Tumbller::Tumbller()
       start_time(0),
       behavior_ready_(false),
       behavior_start_time_(0),
-      low_voltage_(false) {
+      low_voltage_(false),
+      auto_started_(false) {
   tumbller_instance_ = this;
 }
 
@@ -62,6 +64,7 @@ void Tumbller::setup() {
   leds.init(abortCheck);
   voltage.init();
   start_prev_time = millis();
+  start_time = millis();
   car.init(motors);
 }
 
@@ -88,7 +91,8 @@ void Tumbller::loop() {
     motors.stop();
   }
 
-  if (millis() - start_time == kAutoStartMs) {
+  if (!auto_started_ && millis() - start_time >= kAutoStartMs) {
+    auto_started_ = true;
     input.key_value = '5';
   }
 }
@@ -332,8 +336,11 @@ void Tumbller::selfRight() {
   state.motion_mode = STOP;
   car.suppress_motor_output = true;
   motors.back(kSelfRightSpeed);
-  delay((car.kalmanfilter_angle - kSelfRightAngleRef) *
-        (car.kalmanfilter_angle - kSelfRightAngleRef) / kSelfRightDivisor);
+  float diff = car.kalmanfilter_angle - kSelfRightAngleRef;
+  unsigned long dur = static_cast<unsigned long>(diff * diff / kSelfRightDivisor);
+  if (dur > kSelfRightMaxMs)
+    dur = kSelfRightMaxMs;
+  delay(dur);
   motors.stop();
   car.suppress_motor_output = false;
   start_prev_time = millis();

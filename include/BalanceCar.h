@@ -20,8 +20,8 @@ class BalanceCar {
   float kalmanfilter_angle;
   char balance_angle_min;
   char balance_angle_max;
-  int setting_car_speed;
-  int setting_turn_speed;
+  volatile int8_t setting_car_speed;   // written from loop(), read from ISR
+  volatile int8_t setting_turn_speed;  // written from loop(), read from ISR
 
   PidController pid_balance;
   PidController pid_speed;
@@ -48,7 +48,6 @@ class BalanceCar {
   float speed_control_output_;
   float speed_filter_;
   int speed_control_period_count_;
-  float speed_filter_old_;
   float pwm_left_;
   float pwm_right_;
 

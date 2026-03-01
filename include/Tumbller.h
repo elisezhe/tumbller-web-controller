@@ -44,6 +44,7 @@ class Tumbller {
   bool behavior_ready_;
   unsigned long behavior_start_time_;
   bool low_voltage_;
+  bool auto_started_;
 };
 
 #endif
