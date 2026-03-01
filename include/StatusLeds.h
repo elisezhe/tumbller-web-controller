@@ -3,10 +3,9 @@
 
 #include "Adafruit_NeoPixel.h"
 #include "Pins.h"
-#include "mode.h"
 
-class InputHandler;
-class BalanceCar;
+// Callback that returns true when an animation should abort early.
+typedef bool (*AbortCheckFn)();
 
 // Pixel layout (viewed from behind the car):
 //   pixel 2 (front-left)   pixel 3 (front-right)
@@ -22,7 +21,7 @@ enum LedDirection : uint8_t {
 class StatusLeds : public Adafruit_NeoPixel {
  public:
   StatusLeds();
-  void init(CarState& state, InputHandler& input, BalanceCar& car);
+  void init(AbortCheckFn abort_check = nullptr);
 
   // Indicator patterns (non-blocking, used with blink())
   void lightOff();
@@ -43,12 +42,9 @@ class StatusLeds : public Adafruit_NeoPixel {
   char animation_index;
 
  private:
-  CarState* state_;
-  InputHandler* input_;
-  BalanceCar* car_;
-
   uint32_t led_on_[NUMPIXELS];
   uint32_t led_off_[NUMPIXELS];
+  AbortCheckFn abort_check_;
   uint8_t blink_phase_;
   unsigned long blink_prev_millis_;
   unsigned long white_rainbow_last_time_;

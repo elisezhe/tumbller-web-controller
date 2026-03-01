@@ -1,15 +1,10 @@
 #include "StatusLeds.h"
 
-#include "BalanceCar.h"
-#include "InputHandler.h"
-
 StatusLeds::StatusLeds()
     : Adafruit_NeoPixel(NUMPIXELS, RGB_PIN, NEO_GRB + NEO_KHZ800),
-      state_(nullptr),
-      input_(nullptr),
-      car_(nullptr),
       brightness(50),
       animation_index(0),
+      abort_check_(nullptr),
       blink_phase_(0),
       blink_prev_millis_(0),
       white_rainbow_last_time_(0) {
@@ -17,10 +12,8 @@ StatusLeds::StatusLeds()
   memset(led_off_, 0, sizeof(led_off_));
 }
 
-void StatusLeds::init(CarState& state, InputHandler& input, BalanceCar& car) {
-  state_ = &state;
-  input_ = &input;
-  car_ = &car;
+void StatusLeds::init(AbortCheckFn abort_check) {
+  abort_check_ = abort_check;
   begin();
   setBrightness(brightness);
   show();
@@ -92,15 +85,7 @@ void StatusLeds::blink(unsigned long interval) {
 bool StatusLeds::interruptibleDelay(unsigned long wait) {
   unsigned long start = millis();
   while (millis() - start < wait) {
-    if (input_->getBluetoothData() || input_->getKeyValue()) {
-      return true;
-    }
-    if (state_->motion_mode == STOP &&
-        car_->balance_angle_min <= car_->kalmanfilter_angle &&
-        car_->kalmanfilter_angle <= car_->balance_angle_max) {
-      state_->motion_mode = STANDBY;
-      lightOff();
-      state_->function_mode = IDLE;
+    if (abort_check_ && abort_check_()) {
       return true;
     }
   }

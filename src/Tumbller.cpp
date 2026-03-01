@@ -2,6 +2,24 @@
 
 #include "Pins.h"
 
+static Tumbller* tumbller_instance_ = nullptr;
+
+static bool abortCheck() {
+  Tumbller& t = *tumbller_instance_;
+  if (t.input.getBluetoothData() || t.input.getKeyValue()) {
+    return true;
+  }
+  if (t.state.motion_mode == STOP &&
+      t.car.balance_angle_min <= t.car.kalmanfilter_angle &&
+      t.car.kalmanfilter_angle <= t.car.balance_angle_max) {
+    t.state.motion_mode = STANDBY;
+    t.leds.lightOff();
+    t.state.function_mode = IDLE;
+    return true;
+  }
+  return false;
+}
+
 Tumbller::Tumbller()
     : input(state),
       car(state),
@@ -10,13 +28,14 @@ Tumbller::Tumbller()
       start_prev_time(0),
       print_time(0),
       start_time(0) {
+  tumbller_instance_ = this;
 }
 
 void Tumbller::setup() {
   Serial.begin(9600);
   ultrasonic.init(leds);
   input.init();
-  leds.init(state, input, car);
+  leds.init(abortCheck);
   voltage.init(leds);
   start_prev_time = millis();
   car.init(input);
