@@ -14,19 +14,15 @@ BalanceCar::BalanceCar(CarState& state)
       kalmanfilter_angle(0),
       balance_angle_min(-22),
       balance_angle_max(22),
-      car_speed_integral(0),
       setting_car_speed(0),
       setting_turn_speed(0),
+      pid_balance(55, 0, 0.75),
+      pid_speed(10, 0.26, 0, 3000),
+      pid_turn(1, 0, 0.5),
       suppress_motor_output(false),
       state_(state),
       motors_(nullptr),
       mpu_(),
-      kp_balance_(55),
-      kd_balance_(0.75),
-      kp_speed_(10),
-      ki_speed_(0.26),
-      kp_turn_(2.5),
-      kd_turn_(0.5),
       angle_zero_(0),
       angular_velocity_zero_(0),
       encoder_count_right_a_(0),
@@ -40,7 +36,6 @@ BalanceCar::BalanceCar(CarState& state)
       encoder_left_pulse_num_speed_(0),
       encoder_right_pulse_num_speed_(0),
       speed_control_output_(0),
-      rotation_control_output_(0),
       speed_filter_(0),
       speed_control_period_count_(0),
       speed_filter_old_(0),
@@ -94,8 +89,8 @@ void BalanceCar::balance() {
 
   // Balance PID
   double balance_control_output =
-      kp_balance_ * (kalmanfilter_angle - angle_zero_) +
-      kd_balance_ * (kalmanfilter.gyro_x - angular_velocity_zero_);
+      pid_balance.compute(kalmanfilter_angle - angle_zero_, 0,
+                          kalmanfilter.gyro_x - angular_velocity_zero_);
 
   // Speed PID (every 8 cycles = 40ms)
   speed_control_period_count_++;
@@ -107,22 +102,19 @@ void BalanceCar::balance() {
     encoder_right_pulse_num_speed_ = 0;
     speed_filter_ = speed_filter_old_ * 0.7 + car_speed * 0.3;
     speed_filter_old_ = speed_filter_;
-    car_speed_integral += speed_filter_;
-    car_speed_integral += -setting_car_speed;
-    car_speed_integral = constrain(car_speed_integral, -3000, 3000);
-    speed_control_output_ =
-        -kp_speed_ * speed_filter_ - ki_speed_ * car_speed_integral;
+    double speed_error = setting_car_speed - speed_filter_;
+    speed_control_output_ = pid_speed.compute(-speed_filter_, speed_error);
   }
 
   // Turn control
-  rotation_control_output_ =
-      setting_turn_speed + kd_turn_ * kalmanfilter.gyro_z;
+  double rotation_control_output =
+      pid_turn.compute(setting_turn_speed, 0, kalmanfilter.gyro_z);
 
   // Compute PWM
   pwm_left_ =
-      balance_control_output - speed_control_output_ - rotation_control_output_;
+      balance_control_output - speed_control_output_ - rotation_control_output;
   pwm_right_ =
-      balance_control_output - speed_control_output_ + rotation_control_output_;
+      balance_control_output - speed_control_output_ + rotation_control_output;
   pwm_left_ = constrain(pwm_left_, -255, 255);
   pwm_right_ = constrain(pwm_right_, -255, 255);
 
@@ -136,7 +128,7 @@ void BalanceCar::balance() {
 
   // Motor output
   if (state_.motion_mode == STOP) {
-    car_speed_integral = 0;
+    pid_speed.resetIntegral();
     setting_car_speed = 0;
     pwm_left_ = 0;
     pwm_right_ = 0;

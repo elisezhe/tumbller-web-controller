@@ -165,7 +165,7 @@ void Tumbller::setMotionState() {
       if (millis() - start_prev_time > 2000) {
         if (car.balance_angle_min <= car.kalmanfilter_angle &&
             car.kalmanfilter_angle <= car.balance_angle_max) {
-          car.car_speed_integral = 0;
+          car.pid_speed.resetIntegral();
           car.setting_car_speed = 0;
           state.motion_mode = STANDBY;
           leds.lightOff();

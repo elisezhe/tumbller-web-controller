@@ -5,6 +5,7 @@
 
 #include "KalmanFilter.h"
 #include "MPU6050.h"
+#include "PidController.h"
 #include "mode.h"
 
 class MotorDriver;
@@ -18,9 +19,12 @@ class BalanceCar {
   float kalmanfilter_angle;
   char balance_angle_min;
   char balance_angle_max;
-  double car_speed_integral;
   int setting_car_speed;
   int setting_turn_speed;
+
+  PidController pid_balance;
+  PidController pid_speed;
+  PidController pid_turn;
 
   /// Set true while directly driving motors (e.g. self-right).
   /// The balance ISR will skip motor output while this is set.
@@ -31,12 +35,6 @@ class BalanceCar {
   MotorDriver* motors_;
   MPU6050 mpu_;
 
-  double kp_balance_;
-  double kd_balance_;
-  double kp_speed_;
-  double ki_speed_;
-  double kp_turn_;
-  double kd_turn_;
   double angle_zero_;
   double angular_velocity_zero_;
 
@@ -47,7 +45,6 @@ class BalanceCar {
   int encoder_left_pulse_num_speed_;
   int encoder_right_pulse_num_speed_;
   double speed_control_output_;
-  double rotation_control_output_;
   double speed_filter_;
   int speed_control_period_count_;
   double speed_filter_old_;
