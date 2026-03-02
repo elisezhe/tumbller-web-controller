@@ -21,8 +21,7 @@ class PidController {
   /// @param d_input  Signal multiplied by Kd.
   /// @param dt       Timestep scaling for the integral term (seconds).
   ///                 Default 1.0 preserves fixed-rate behavior.
-  float compute(float p_input, float i_input, float d_input = 0,
-                float dt = 1.0);
+  float compute(float p_input, float i_input, float d_input = 0, float dt = 1.0);
 
   void resetIntegral();
   float integral() const {

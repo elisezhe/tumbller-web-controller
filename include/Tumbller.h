@@ -34,8 +34,7 @@ class Tumbller {
   void keyEventHandle();
   void handleVoltage();
   void obstacleAvoidance();
-  void followBehavior(uint8_t backup_dist, uint8_t follow_dist,
-                      uint8_t stop_dist);
+  void followBehavior(uint8_t backup_dist, uint8_t follow_dist, uint8_t stop_dist);
   void startBehavior(FUNCTION_MODE mode);
   void cycleAnimation();
   void standUp();

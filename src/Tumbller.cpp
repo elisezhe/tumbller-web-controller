@@ -4,23 +4,22 @@
 
 namespace {
 const uint32_t kSerialBaud = 9600;
-const uint32_t kBlinkIntervalMs = 100;  // LED blink toggle period
-const uint32_t kPrintIntervalMs = 100;  // serial debug output interval
-const uint32_t kStartupGuardMs = 10;    // ignore input during first N ms
-const uint32_t kAutoStartMs = 2000;     // auto-send '5' command after boot
-const uint32_t kBehaviorWarmupMs =
-    2000;                               // settling time before autonomous mode
-const uint32_t kStopRecoveryMs = 1000;  // STOP -> STANDBY recovery timeout
-const uint32_t kStartSettleMs = 2000;   // START -> STANDBY settling timeout
-const uint32_t kStartDebounceMs = 500;  // debounce for manual start command
-const int16_t kDefaultBrightness = 50;  // LED brightness on reset
-const int16_t kBrightnessStep = 25;     // brightness increment/decrement
-const uint8_t kStandUpSpeed = 110;      // motor PWM for stand-up maneuver
-const int8_t kStandUpAngleRef = 30;     // reference angle for stand-up duration
-const uint8_t kStandUpDivisor = 8;      // duration scaling divisor
-const uint32_t kStandUpMaxMs = 500;     // cap stand-up motor duration
-const uint8_t kObstacleNearCm = 20;     // back up if closer than this
-const uint8_t kObstacleSlowCm = 40;     // stop forward if closer than this
+const uint32_t kBlinkIntervalMs = 100;    // LED blink toggle period
+const uint32_t kPrintIntervalMs = 100;    // serial debug output interval
+const uint32_t kStartupGuardMs = 10;      // ignore input during first N ms
+const uint32_t kAutoStartMs = 2000;       // auto-send '5' command after boot
+const uint32_t kBehaviorWarmupMs = 2000;  // settling time before autonomous mode
+const uint32_t kStopRecoveryMs = 1000;    // STOP -> STANDBY recovery timeout
+const uint32_t kStartSettleMs = 2000;     // START -> STANDBY settling timeout
+const uint32_t kStartDebounceMs = 500;    // debounce for manual start command
+const int16_t kDefaultBrightness = 50;    // LED brightness on reset
+const int16_t kBrightnessStep = 25;       // brightness increment/decrement
+const uint8_t kStandUpSpeed = 110;        // motor PWM for stand-up maneuver
+const int8_t kStandUpAngleRef = 30;       // reference angle for stand-up duration
+const uint8_t kStandUpDivisor = 8;        // duration scaling divisor
+const uint32_t kStandUpMaxMs = 500;       // cap stand-up motor duration
+const uint8_t kObstacleNearCm = 20;       // back up if closer than this
+const uint8_t kObstacleSlowCm = 40;       // stop forward if closer than this
 }  // namespace
 
 static Tumbller* tumbller_instance_ = nullptr;
@@ -30,8 +29,7 @@ static bool abortCheck() {
   if (t.input.getBluetoothData() || t.input.getKeyValue()) {
     return true;
   }
-  if (t.state.motion_mode == STOP &&
-      t.car.balance_angle_min <= t.car.kalmanfilter_angle &&
+  if (t.state.motion_mode == STOP && t.car.balance_angle_min <= t.car.kalmanfilter_angle &&
       t.car.kalmanfilter_angle <= t.car.balance_angle_max) {
     t.state.motion_mode = STANDBY;
     t.leds.lightOff();
@@ -182,8 +180,7 @@ void Tumbller::setMotionState() {
     case STOP:
       if (millis() - start_prev_time > kStopRecoveryMs) {
         state.function_mode = IDLE;
-        if (car.balance_angle_min <= car.kalmanfilter_angle &&
-            car.kalmanfilter_angle <= car.balance_angle_max) {
+        if (car.balance_angle_min <= car.kalmanfilter_angle && car.kalmanfilter_angle <= car.balance_angle_max) {
           state.motion_mode = STANDBY;
           leds.lightOff();
         }
@@ -191,8 +188,7 @@ void Tumbller::setMotionState() {
       break;
     case START:
       if (millis() - start_prev_time > kStartSettleMs) {
-        if (car.balance_angle_min <= car.kalmanfilter_angle &&
-            car.kalmanfilter_angle <= car.balance_angle_max) {
+        if (car.balance_angle_min <= car.kalmanfilter_angle && car.kalmanfilter_angle <= car.balance_angle_max) {
           car.pid_speed.resetIntegral();
           car.setting_car_speed = 0;
           state.motion_mode = STANDBY;
@@ -260,8 +256,7 @@ void Tumbller::keyEventHandle() {
 
     // Startup
     case '5':
-      if (millis() - start_prev_time > kStartDebounceMs &&
-          car.kalmanfilter_angle >= car.balance_angle_min) {
+      if (millis() - start_prev_time > kStartDebounceMs && car.kalmanfilter_angle >= car.balance_angle_min) {
         start_prev_time = millis();
       }
       state.motion_mode = START;
@@ -387,8 +382,7 @@ void Tumbller::obstacleAvoidance() {
   }
 }
 
-void Tumbller::followBehavior(uint8_t backup_dist, uint8_t follow_dist,
-                              uint8_t stop_dist) {
+void Tumbller::followBehavior(uint8_t backup_dist, uint8_t follow_dist, uint8_t stop_dist) {
   if (ultrasonic.left_is_obstacle && ultrasonic.right_is_obstacle) {
     state.motion_mode = FORWARD;
     leds.flash(StatusLeds::Color(0, 255, 0), DIR_FRONT);
@@ -426,8 +420,7 @@ void Tumbller::handleVoltage() {
       state.motion_mode = STOP;
       motors.disable();
     }
-    if (state.motion_mode == STANDBY || state.motion_mode == STOP ||
-        state.motion_mode == START) {
+    if (state.motion_mode == STANDBY || state.motion_mode == STOP || state.motion_mode == START) {
       leds.flash(StatusLeds::Color(255, 0, 0), DIR_ALL);
     }
     low_voltage_ = true;

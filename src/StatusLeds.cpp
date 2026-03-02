@@ -71,9 +71,7 @@ void StatusLeds::blink(uint32_t interval) {
     for (uint8_t i = 0; i < NUMPIXELS; i++)
       setPixelColor(i, led_on_[i]);
     show();
-  } else if ((millis() - blink_prev_millis_ < interval * 2) &&
-             (millis() - blink_prev_millis_ > interval) &&
-             (blink_phase_ == 1)) {
+  } else if ((millis() - blink_prev_millis_ < interval * 2) && (millis() - blink_prev_millis_ > interval) && (blink_phase_ == 1)) {
     blink_phase_ = 2;
     for (uint8_t i = 0; i < NUMPIXELS; i++)
       setPixelColor(i, led_off_[i]);
@@ -197,8 +195,7 @@ bool StatusLeds::theaterChaseRainbow(uint8_t wait) {
   return false;
 }
 
-bool StatusLeds::rainbowFade2White(uint8_t wait, int16_t rainbowLoops,
-                                   int16_t whiteLoops) {
+bool StatusLeds::rainbowFade2White(uint8_t wait, int16_t rainbowLoops, int16_t whiteLoops) {
   float fadeMax = 100.0;
   int16_t fadeVal = 0;
   uint32_t wheelVal;
@@ -248,8 +245,7 @@ bool StatusLeds::rainbowFade2White(uint8_t wait, int16_t rainbowLoops,
   return false;
 }
 
-bool StatusLeds::whiteOverRainbow(uint8_t wait, uint8_t whiteSpeed,
-                                  uint8_t whiteLength) {
+bool StatusLeds::whiteOverRainbow(uint8_t wait, uint8_t whiteSpeed, uint8_t whiteLength) {
   if (whiteLength >= numPixels())
     whiteLength = numPixels() - 1;
 
@@ -263,8 +259,7 @@ bool StatusLeds::whiteOverRainbow(uint8_t wait, uint8_t whiteSpeed,
   while (true) {
     for (int16_t j = 0; j < 256; j++) {
       for (uint16_t i = 0; i < numPixels(); i++) {
-        if ((i >= tail && i <= head) || (tail > head && i >= tail) ||
-            (tail > head && i <= head)) {
+        if ((i >= tail && i <= head) || (tail > head && i >= tail) || (tail > head && i <= head)) {
           setPixelColor(i, Color(0, 0, 0, 255));
         } else {
           setPixelColor(i, wheel(((i * 256 / numPixels()) + j) & 255));

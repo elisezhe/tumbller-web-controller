@@ -2,21 +2,11 @@
 
 namespace {
 const float kRadToDeg = 57.2957795f;  // 180/pi — radians to degrees
-const float kGyroLsbPerDps =
-    131.0f;  // MPU6050 sensitivity at +/-250 deg/s range
+const float kGyroLsbPerDps = 131.0f;  // MPU6050 sensitivity at +/-250 deg/s range
 }  // namespace
 
 KalmanFilter::KalmanFilter()
-    : angle(0),
-      gyro_x(0),
-      gyro_z(0),
-      dt_(0),
-      Q_angle_(0),
-      Q_gyro_(0),
-      R_angle_(0),
-      C_0_(0),
-      gyro_offset_(0),
-      q_bias_(0) {
+    : angle(0), gyro_x(0), gyro_z(0), dt_(0), Q_angle_(0), Q_gyro_(0), R_angle_(0), C_0_(0), gyro_offset_(0), q_bias_(0) {
   memset(Pdot_, 0, sizeof(Pdot_));
   P_[0][0] = 1;
   P_[0][1] = 0;
@@ -24,8 +14,7 @@ KalmanFilter::KalmanFilter()
   P_[1][1] = 1;
 }
 
-void KalmanFilter::init(float dt, float Q_angle, float Q_gyro, float R_angle,
-                        float C_0, float gyro_offset) {
+void KalmanFilter::init(float dt, float Q_angle, float Q_gyro, float R_angle, float C_0, float gyro_offset) {
   dt_ = dt;
   Q_angle_ = Q_angle;
   Q_gyro_ = Q_gyro;
@@ -34,16 +23,14 @@ void KalmanFilter::init(float dt, float Q_angle, float Q_gyro, float R_angle,
   gyro_offset_ = gyro_offset;
 }
 
-void KalmanFilter::process(int16_t ax, int16_t ay, int16_t az, int16_t gx,
-                           int16_t gy, int16_t gz) {
+void KalmanFilter::process(int16_t ax, int16_t ay, int16_t az, int16_t gx, int16_t gy, int16_t gz) {
   float accel_angle = atan2(ay, az) * kRadToDeg;
   gyro_x = (gx - gyro_offset_) / kGyroLsbPerDps;
   update(accel_angle, gyro_x);
   gyro_z = -gz / kGyroLsbPerDps;
 }
 
-void KalmanFilter::process(int16_t ax, int16_t ay, int16_t az, int16_t gx,
-                           int16_t gy, int16_t gz, float dt) {
+void KalmanFilter::process(int16_t ax, int16_t ay, int16_t az, int16_t gx, int16_t gy, int16_t gz, float dt) {
   dt_ = dt;
   process(ax, ay, az, gx, gy, gz);
 }

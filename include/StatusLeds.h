@@ -35,8 +35,7 @@ class StatusLeds : public Adafruit_NeoPixel {
   bool rainbow(uint8_t wait);
   bool rainbowCycle(uint8_t wait);
   bool theaterChaseRainbow(uint8_t wait);
-  bool rainbowFade2White(uint8_t wait, int16_t rainbowLoops,
-                         int16_t whiteLoops);
+  bool rainbowFade2White(uint8_t wait, int16_t rainbowLoops, int16_t whiteLoops);
   bool whiteOverRainbow(uint8_t wait, uint8_t whiteSpeed, uint8_t whiteLength);
 
   int16_t brightness;

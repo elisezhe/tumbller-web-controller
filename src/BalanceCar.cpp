@@ -16,8 +16,7 @@ const float kBalanceKd = 0.75;
 // Ki is time-scaled (seconds); equivalent to 0.26 at fixed 40ms update rate.
 const float kSpeedKp = 10.0;
 const float kSpeedKi = 6.5;
-const float kSpeedIntegralLimit =
-    120.0;  // max |integral| (780 max PWM contribution)
+const float kSpeedIntegralLimit = 120.0;  // max |integral| (780 max PWM contribution)
 
 // Turn PD: feedforward on setpoint, derivative damping from yaw gyro.
 const float kTurnKp = 1.0;
@@ -28,8 +27,7 @@ const int8_t kFallAngleMin = -22;  // degrees — below this the robot is fallen
 const int8_t kFallAngleMax = 22;   // degrees — above this the robot is fallen
 
 // --- Speed control loop ---
-const uint8_t kSpeedPidPeriod =
-    8;  // ISR cycles between speed PID updates (~40ms)
+const uint8_t kSpeedPidPeriod = 8;    // ISR cycles between speed PID updates (~40ms)
 const float kSpeedFilterAlpha = 0.3;  // EMA weight for new encoder sample
 
 // --- PWM output ---
@@ -39,18 +37,16 @@ const int16_t kPwmLimit = 255;  // max absolute PWM value (8-bit timer)
 const uint16_t kBalanceIntervalMs = 5;  // MsTimer2 period
 
 // --- Variable-dt safety clamp ---
-const float kDtMax = 0.02f;  // 20ms — reject impossibly long intervals
-const float kDtDefault =
-    0.005f;  // 5ms — fallback for first call / micros() overflow
+const float kDtMax = 0.02f;       // 20ms — reject impossibly long intervals
+const float kDtDefault = 0.005f;  // 5ms — fallback for first call / micros() overflow
 
 // --- Kalman filter init parameters ---
-const float kKalmanDt = 0.005f;      // nominal timestep (seconds)
-const float kKalmanQAngle = 0.001f;  // process noise covariance: angle state
-const float kKalmanQGyro = 0.005f;   // process noise covariance: gyro bias
-const float kKalmanRAngle = 0.5f;  // measurement noise covariance: accel angle
-const float kKalmanC0 = 1.0f;      // observation model coefficient
-const float kKalmanGyroOffset =
-    128.1f;  // raw gyro X offset (hardware-specific)
+const float kKalmanDt = 0.005f;          // nominal timestep (seconds)
+const float kKalmanQAngle = 0.001f;      // process noise covariance: angle state
+const float kKalmanQGyro = 0.005f;       // process noise covariance: gyro bias
+const float kKalmanRAngle = 0.5f;        // measurement noise covariance: accel angle
+const float kKalmanC0 = 1.0f;            // observation model coefficient
+const float kKalmanGyroOffset = 128.1f;  // raw gyro X offset (hardware-specific)
 }  // namespace
 
 BalanceCar* BalanceCar::instance_ = nullptr;
@@ -88,8 +84,7 @@ void BalanceCar::init(MotorDriver& motors) {
 
   Wire.begin();
   mpu_.initialize();
-  kalmanfilter.init(kKalmanDt, kKalmanQAngle, kKalmanQGyro, kKalmanRAngle,
-                    kKalmanC0, kKalmanGyroOffset);
+  kalmanfilter.init(kKalmanDt, kKalmanQAngle, kKalmanQGyro, kKalmanRAngle, kKalmanC0, kKalmanGyroOffset);
 
   encoder_left_.init(ENCODER_LEFT_A_PIN, true);
   encoder_right_.init(ENCODER_RIGHT_A_PIN, false);
@@ -126,40 +121,32 @@ void BalanceCar::balance() {
 
   // Balance PID (Ki=0, dt has no effect on integral)
   float balance_control_output =
-      pid_balance.compute(kalmanfilter_angle - angle_zero_, 0,
-                          kalmanfilter.gyro_x - angular_velocity_zero_);
+      pid_balance.compute(kalmanfilter_angle - angle_zero_, 0, kalmanfilter.gyro_x - angular_velocity_zero_);
 
   // Speed PID (every 8 cycles, ~40ms)
   speed_dt_ += dt;
   speed_control_period_count_++;
   if (speed_control_period_count_ >= kSpeedPidPeriod) {
     speed_control_period_count_ = 0;
-    float car_speed =
-        (encoder_left_.readAndReset() + encoder_right_.readAndReset()) * 0.5;
-    speed_filter_ = speed_filter_ * (1.0f - kSpeedFilterAlpha) +
-                    car_speed * kSpeedFilterAlpha;
+    float car_speed = (encoder_left_.readAndReset() + encoder_right_.readAndReset()) * 0.5;
+    speed_filter_ = speed_filter_ * (1.0f - kSpeedFilterAlpha) + car_speed * kSpeedFilterAlpha;
     float speed_error = setting_car_speed - speed_filter_;
-    speed_control_output_ =
-        pid_speed.compute(-speed_filter_, speed_error, 0, speed_dt_);
+    speed_control_output_ = pid_speed.compute(-speed_filter_, speed_error, 0, speed_dt_);
     speed_dt_ = 0;
   }
 
   // Turn control (Ki=0, dt has no effect on integral)
-  float rotation_control_output =
-      pid_turn.compute(setting_turn_speed, 0, kalmanfilter.gyro_z);
+  float rotation_control_output = pid_turn.compute(setting_turn_speed, 0, kalmanfilter.gyro_z);
 
   // Compute PWM
-  pwm_left_ =
-      balance_control_output - speed_control_output_ - rotation_control_output;
-  pwm_right_ =
-      balance_control_output - speed_control_output_ + rotation_control_output;
+  pwm_left_ = balance_control_output - speed_control_output_ - rotation_control_output;
+  pwm_right_ = balance_control_output - speed_control_output_ + rotation_control_output;
   pwm_left_ = constrain(pwm_left_, -kPwmLimit, kPwmLimit);
   pwm_right_ = constrain(pwm_right_, -kPwmLimit, kPwmLimit);
 
   // Fall detection
   if (state_.motion_mode != START && state_.motion_mode != STOP &&
-      (kalmanfilter_angle < balance_angle_min ||
-       balance_angle_max < kalmanfilter_angle)) {
+      (kalmanfilter_angle < balance_angle_min || balance_angle_max < kalmanfilter_angle)) {
     state_.motion_mode = STOP;
     motors_->stop();
   }

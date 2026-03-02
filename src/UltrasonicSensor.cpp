@@ -4,20 +4,18 @@
 #include "Pins.h"
 
 namespace {
-const float kSoundUsPerCm = 58.2;          // round-trip microseconds per cm
-const float kMaxDistanceCm = 600.0;        // cap readings beyond this
-const uint32_t kDistanceIntervalMs = 100;  // minimum ms between distance pings
-const uint32_t kObstacleCheckIntervalMs =
-    50;                             // minimum ms between IR obstacle checks
-const uint8_t kIrPulseCount = 39;   // pulses per 38 kHz burst (~1ms)
-const uint8_t kIrHalfPeriodUs = 9;  // half-period for ~38 kHz carrier
-const uint8_t kIrSettleMs = 2;      // settle time after IR burst
-const uint8_t kObstacleHitThreshold = 2;  // min ISR hits to flag obstacle
-const uint8_t kFilterMajority =
-    3;  // min positive samples (out of 10) to declare
-const uint32_t kObstacleWindowMs = 50;  // sliding window for hit counting
-const uint8_t kTrigSetupUs = 2;   // HC-SR04: low before trigger pulse
-const uint8_t kTrigPulseUs = 10;  // HC-SR04: trigger pulse width
+const float kSoundUsPerCm = 58.2;              // round-trip microseconds per cm
+const float kMaxDistanceCm = 600.0;            // cap readings beyond this
+const uint32_t kDistanceIntervalMs = 100;      // minimum ms between distance pings
+const uint32_t kObstacleCheckIntervalMs = 50;  // minimum ms between IR obstacle checks
+const uint8_t kIrPulseCount = 39;              // pulses per 38 kHz burst (~1ms)
+const uint8_t kIrHalfPeriodUs = 9;             // half-period for ~38 kHz carrier
+const uint8_t kIrSettleMs = 2;                 // settle time after IR burst
+const uint8_t kObstacleHitThreshold = 2;       // min ISR hits to flag obstacle
+const uint8_t kFilterMajority = 3;             // min positive samples (out of 10) to declare
+const uint32_t kObstacleWindowMs = 50;         // sliding window for hit counting
+const uint8_t kTrigSetupUs = 2;                // HC-SR04: low before trigger pulse
+const uint8_t kTrigPulseUs = 10;               // HC-SR04: trigger pulse width
 }  // namespace
 
 UltrasonicSensor* UltrasonicSensor::instance_ = nullptr;

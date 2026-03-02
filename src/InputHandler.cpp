@@ -11,12 +11,7 @@ const uint8_t kNumKeyModes = 5;       // number of key-button cycling modes
 InputHandler* InputHandler::instance_ = nullptr;
 
 InputHandler::InputHandler(CarState& state)
-    : key_value('\0'),
-      key_flag('\0'),
-      state_(state),
-      key_mode_(0),
-      prev_key_mode_(0),
-      key_mode_time_(0) {
+    : key_value('\0'), key_flag('\0'), state_(state), key_mode_(0), prev_key_mode_(0), key_mode_time_(0) {
 }
 
 void InputHandler::init() {
@@ -80,10 +75,8 @@ bool InputHandler::getBluetoothData() {
       if (c == 's') {
         state_.function_mode = IDLE;
       }
-      if (key_value == 'f' || key_value == 'b' || key_value == 'l' ||
-          key_value == 'i' || key_value == 's' || key_value == '0' ||
-          key_value == '1' || key_value == '2' || key_value == '3' ||
-          key_value == '4' || key_value == '5' || key_value == '6' ||
+      if (key_value == 'f' || key_value == 'b' || key_value == 'l' || key_value == 'i' || key_value == 's' || key_value == '0' ||
+          key_value == '1' || key_value == '2' || key_value == '3' || key_value == '4' || key_value == '5' || key_value == '6' ||
           key_value == '7' || key_value == '8' || key_value == '9') {
         return true;
       }

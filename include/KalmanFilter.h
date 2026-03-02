@@ -8,17 +8,14 @@ class KalmanFilter {
   KalmanFilter();
 
   // Configure filter parameters (call once before use).
-  void init(float dt, float Q_angle, float Q_gyro, float R_angle, float C_0,
-            float gyro_offset);
+  void init(float dt, float Q_angle, float Q_gyro, float R_angle, float C_0, float gyro_offset);
 
   // Process raw IMU data -> updates angle, gyro_x, gyro_z.
   // Uses the dt configured via init().
-  void process(int16_t ax, int16_t ay, int16_t az, int16_t gx, int16_t gy,
-               int16_t gz);
+  void process(int16_t ax, int16_t ay, int16_t az, int16_t gx, int16_t gy, int16_t gz);
 
   // Process with explicit dt (seconds) for variable-rate loops.
-  void process(int16_t ax, int16_t ay, int16_t az, int16_t gx, int16_t gy,
-               int16_t gz, float dt);
+  void process(int16_t ax, int16_t ay, int16_t az, int16_t gx, int16_t gy, int16_t gz, float dt);
 
   float angle;   // Kalman-filtered tilt angle (degrees)
   float gyro_x;  // Processed X gyro rate (deg/s)
