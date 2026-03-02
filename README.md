@@ -1,6 +1,7 @@
 # ELEGOO Tumbller — Self-Balancing Robot Car
 
-Refactored firmware for the [ELEGOO Tumbller Self-Balancing Robot Car Kit](https://www.elegoo.com/products/elegoo-tumbller-self-balancing-robot-car),
+Refactored firmware for the [ELEGOO Tumbller Self-Balancing Robot Car Kit](https://www.elegoo.com/products/elegoo-tumbller-self-balancing-robot-car)
+([Amazon](https://www.amazon.com/dp/B0B68M74WQ)),
 built with [PlatformIO](https://platformio.org/) for the Arduino Nano (ATmega328P).
 
 > **Note:** This project has been migrated from the original Arduino IDE sketch
