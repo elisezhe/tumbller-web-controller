@@ -132,38 +132,41 @@ PlatformIO registry). No additional downloads are needed.
 ## Project Structure
 
 ```text
-├── platformio.ini          PlatformIO project configuration
-├── Makefile                clang-format helper
+├── platformio.ini              PlatformIO project configuration
+├── Makefile                    clang-format helper
 ├── include/
-│   ├── BalanceCar.h        Balance ISR, PID controllers, encoder interface
-│   ├── InputHandler.h      Button + Bluetooth input abstraction
-│   ├── KalmanFilter.h      Kalman filter for IMU angle estimation
-│   ├── mode.h              Motion/function mode enums and CarState
-│   ├── MotorDriver.h       TB6612FNG motor driver wrapper
-│   ├── MPU6050.h           MPU6050 I²C driver
-│   ├── PidController.h     Reusable 3-input PID controller
-│   ├── Pins.h              Hardware pin definitions
-│   ├── Rgb.h               NeoPixel color/direction types
-│   ├── StatusLeds.h        LED animation state machine
-│   ├── Tumbller.h          Main application orchestrator
-│   ├── UltrasonicSensor.h  HC-SR04 distance + obstacle detection
-│   ├── VoltageMon.h        Battery voltage monitor
-│   └── WheelEncoder.h      Encoder pulse accumulator with ISR
+│   ├── BalanceCar.h            Balance ISR, PID controllers, encoder interface
+│   ├── EnableInterruptWrapper.h  Multi-file compilation wrapper for EnableInterrupt
+│   ├── InputHandler.h          Button + Bluetooth input abstraction
+│   ├── KalmanFilter.h          Kalman filter for IMU angle estimation
+│   ├── mode.h                  Motion/function mode enums and CarState
+│   ├── MotorDriver.h           TB6612FNG motor driver wrapper
+│   ├── PidController.h         Reusable 3-input PID controller
+│   ├── Pins.h                  Hardware pin definitions
+│   ├── StatusLeds.h            LED animation state machine
+│   ├── Tumbller.h              Main application orchestrator
+│   ├── UltrasonicSensor.h      HC-SR04 distance + obstacle detection
+│   ├── VoltageMon.h            Battery voltage monitor
+│   └── WheelEncoder.h          Encoder pulse accumulator with ISR
 ├── lib/
-│   └── EnableInterrupt/    Pin-change interrupt library
+│   ├── Adafruit_NeoPixel/      WS2812B NeoPixel LED driver
+│   ├── EnableInterrupt/        Pin-change interrupt library
+│   ├── I2Cdev/                 I²C device helper library
+│   ├── MPU6050/                MPU6050 IMU driver
+│   └── MsTimer2/               Timer2 interrupt library
 └── src/
-    ├── main.cpp            Arduino setup()/loop() entry point
-    ├── BalanceCar.cpp       Balance control implementation
-    ├── KalmanFilter.cpp     Kalman filter implementation
-    ├── I2Cdev.cpp           I²C device helper
-    ├── MPU6050.cpp          MPU6050 driver implementation
-    ├── MsTimer2.cpp         Timer2 interrupt library
-    ├── PidController.cpp    PID controller implementation
-    ├── StatusLeds.cpp       LED animation implementation
-    ├── Tumbller.cpp         Application logic, commands, behaviors
-    ├── UltrasonicSensor.cpp Ultrasonic sensor implementation
-    ├── VoltageMon.cpp       Voltage monitor implementation
-    └── WheelEncoder.cpp     Wheel encoder implementation
+    ├── main.cpp                Arduino setup()/loop() entry point
+    ├── BalanceCar.cpp           Balance control implementation
+    ├── EnableInterruptImpl.cpp  EnableInterrupt single compilation unit
+    ├── InputHandler.cpp         Button + Bluetooth input implementation
+    ├── KalmanFilter.cpp         Kalman filter implementation
+    ├── MotorDriver.cpp          TB6612FNG motor driver implementation
+    ├── PidController.cpp        PID controller implementation
+    ├── StatusLeds.cpp           LED animation implementation
+    ├── Tumbller.cpp             Application logic, commands, behaviors
+    ├── UltrasonicSensor.cpp     Ultrasonic sensor implementation
+    ├── VoltageMon.cpp           Voltage monitor implementation
+    └── WheelEncoder.cpp         Wheel encoder implementation
 ```
 
 ## Architecture
