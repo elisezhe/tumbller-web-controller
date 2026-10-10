@@ -1,0 +1,9 @@
+{
+  "name": "tumbller-web-controller",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test web/tests/*.test.mjs",
+    "start": "python -m http.server 8080 --directory web"
+  }
+}

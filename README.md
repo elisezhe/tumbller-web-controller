@@ -10,6 +10,43 @@ built with [PlatformIO](https://platformio.org/) for the Arduino Nano (ATmega328
 > management via `platformio.ini`, and a standard `src/` / `include/` / `lib/`
 > layout. Build, upload, and serial monitor are all handled through PlatformIO.
 
+## Local Web Bluetooth Controller
+
+The `web/` directory contains a browser controller for the robot's **ELEGOO BT16**
+BLE module. It connects directly through Web Bluetooth—Windows pairing and COM
+ports are not used.
+
+Requirements:
+
+- Chrome or Edge with Web Bluetooth support
+- The robot powered on and nearby
+- The page served from `localhost` (Web Bluetooth requires a secure context)
+
+Run it locally:
+
+```bash
+npm start
+```
+
+Then open `http://localhost:8080`. Click **Connect robot**, choose
+**ELEGOO BT16**, and use the on-screen controls or WASD/arrow keys. Directional
+buttons are hold-to-drive and automatically send the firmware's `s` stop command
+when released.
+
+Run the JavaScript tests with:
+
+```bash
+npm test
+```
+
+BLE protocol:
+
+| Item | Value |
+| --- | --- |
+| Device name | `ELEGOO BT16` |
+| UART service | `0000ffe0-0000-1000-8000-00805f9b34fb` |
+| UART characteristic | `0000ffe1-0000-1000-8000-00805f9b34fb` |
+
 ## Hardware
 
 | Component | Description |

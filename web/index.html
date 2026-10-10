@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#08090a">
+  <title>Tumbller Control</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body data-connected="false">
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark" aria-hidden="true"><span></span><span></span></div>
+        <div>
+          <p class="eyebrow">ELEGOO / BLE CONSOLE</p>
+          <h1>Tumbller Control</h1>
+        </div>
+      </div>
+      <div class="connection-panel">
+        <div class="connection-copy">
+          <div class="status-line"><span id="status-dot" class="status-dot"></span><strong id="status-text">Disconnected</strong></div>
+          <span id="device-text">No robot selected</span>
+        </div>
+        <button id="connect-button" class="button primary">Connect robot</button>
+        <button id="disconnect-button" class="button ghost" hidden>Disconnect</button>
+      </div>
+    </header>
+
+    <section class="safety-strip" aria-label="Safety information">
+      <span>Hold a direction to move. Releasing it sends <code>s</code> immediately.</span>
+      <button id="emergency-stop" class="stop-button">STOP</button>
+    </section>
+
+    <div class="workspace">
+      <section class="drive-panel panel">
+        <div class="panel-heading">
+          <div><p class="eyebrow">DIRECT DRIVE</p><h2>Movement</h2></div>
+          <div class="key-legend"><kbd>WASD</kbd><span>or</span><kbd>ARROWS</kbd></div>
+        </div>
+
+        <div class="drive-grid" aria-label="Directional controls">
+          <button class="drive-button forward" data-command="f" data-label="Forward" data-hold="true" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>Forward</span><kbd>W</kbd>
+          </button>
+          <button class="drive-button left" data-command="l" data-label="Turn left" data-hold="true" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg><span>Left</span><kbd>A</kbd>
+          </button>
+          <button class="drive-button center-stop" data-command="s" data-label="Stop" disabled>
+            <span class="stop-square"></span><span>Stop</span><kbd>SPACE</kbd>
+          </button>
+          <button class="drive-button right" data-command="i" data-label="Turn right" data-hold="true" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg><span>Right</span><kbd>D</kbd>
+          </button>
+          <button class="drive-button backward" data-command="b" data-label="Backward" data-hold="true" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>Back</span><kbd>S</kbd>
+          </button>
+        </div>
+        <div class="command-readout"><span>Last command</span><strong id="last-command">None</strong></div>
+      </section>
+
+      <aside class="side-stack">
+        <section class="panel modes-panel">
+          <div class="panel-heading"><div><p class="eyebrow">AUTONOMY</p><h2>Modes</h2></div></div>
+          <div class="action-list">
+            <button data-command="1" data-label="Follow mode" disabled><span><strong>Follow</strong><small>IR tracking</small></span><code>1</code></button>
+            <button data-command="0" data-label="Wide follow mode" disabled><span><strong>Wide follow</strong><small>Wider IR range</small></span><code>0</code></button>
+            <button data-command="2" data-label="Obstacle avoidance" disabled><span><strong>Avoid obstacles</strong><small>Ultrasonic + IR</small></span><code>2</code></button>
+            <button data-command="5" data-label="Initialize balance" disabled><span><strong>Initialize</strong><small>Reset balancing</small></span><code>5</code></button>
+            <button data-command="4" data-label="Stand-up maneuver" class="danger-action" disabled><span><strong>Stand up</strong><small>Keep wheels clear</small></span><code>4</code></button>
+          </div>
+        </section>
+
+        <section class="panel lights-panel">
+          <div class="panel-heading"><div><p class="eyebrow">LIGHTS</p><h2>LED controls</h2></div></div>
+          <div class="light-actions">
+            <button data-command="3" data-label="Cycle animation" disabled>Cycle <code>3</code></button>
+            <button data-command="7" data-label="Dim lights" disabled>Dim <code>7</code></button>
+            <button data-command="8" data-label="Brighten lights" disabled>Brighten <code>8</code></button>
+            <button data-command="9" data-label="Lights off" disabled>Off <code>9</code></button>
+            <button data-command="6" data-label="Reset brightness" disabled>Reset <code>6</code></button>
+          </div>
+        </section>
+      </aside>
+    </div>
+
+    <section class="panel telemetry-panel">
+      <div class="panel-heading">
+        <div><p class="eyebrow">BLE UART / FFE1</p><h2>Activity</h2></div>
+        <span class="protocol">Service FFE0 · Characteristic FFE1</span>
+      </div>
+      <div id="telemetry" class="telemetry" aria-live="polite">
+        <div class="empty-log">Connect the robot to begin.</div>
+      </div>
+    </section>
+
+    <footer>
+      <span>Web Bluetooth requires Chrome or Edge on <code>localhost</code>.</span>
+      <span>No Windows pairing or COM port required.</span>
+    </footer>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
