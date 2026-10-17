@@ -109,6 +109,7 @@ BLE protocol:
 | `0` | Follow mode 2 (wider range) |
 | `2` | Obstacle avoidance mode |
 | `3` | Cycle LED animation |
+| `g` | Amber breathing glow mode |
 | `4` | Stand-up maneuver |
 | `5` | Startup / re-initialize balance |
 | `6` | Reset LED brightness |

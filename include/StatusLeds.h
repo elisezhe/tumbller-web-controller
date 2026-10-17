@@ -27,6 +27,7 @@ class StatusLeds : public Adafruit_NeoPixel {
   void lightOff();
   void solid(uint32_t color);
   void flash(uint32_t color, LedDirection dir);
+  void glow(uint32_t color);
   void blink(uint32_t interval);
 
   // Blocking animations (return true if interrupted by input)
@@ -47,6 +48,11 @@ class StatusLeds : public Adafruit_NeoPixel {
   AbortCheckFn abort_check_;
   uint8_t blink_phase_;
   uint32_t blink_prev_millis_;
+  bool glow_active_;
+  uint32_t glow_color_;
+  uint8_t glow_level_;
+  int8_t glow_step_;
+  uint32_t glow_prev_millis_;
 
   bool interruptibleDelay(uint32_t wait);
   uint32_t wheel(uint8_t pos);

@@ -248,6 +248,13 @@ void Tumbller::keyEventHandle() {
     case '3':
       cycleAnimation();
       break;
+    case 'g':
+      if (leds.brightness == 0) {
+        leds.brightness = kDefaultBrightness;
+        leds.setBrightness(leds.brightness);
+      }
+      leds.glow(StatusLeds::Color(255, 96, 0));
+      break;
 
     // Self-right maneuver
     case '4':

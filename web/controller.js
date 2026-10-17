@@ -12,6 +12,7 @@ export const COMMANDS = Object.freeze({
   follow: '1',
   obstacle: '2',
   cycleLights: '3',
+  glow: 'g',
   standUp: '4',
   initialize: '5',
   resetBrightness: '6',

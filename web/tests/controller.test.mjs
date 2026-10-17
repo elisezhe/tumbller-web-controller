@@ -15,6 +15,11 @@ test('encodeCommand accepts every firmware command as one byte', () => {
   }
 });
 
+test('glow mode is exposed as the dedicated g firmware command', () => {
+  assert.equal(COMMANDS.glow, 'g');
+  assert.deepEqual([...encodeCommand(COMMANDS.glow)], ['g'.charCodeAt(0)]);
+});
+
 test('encodeCommand rejects commands outside the firmware protocol', () => {
   assert.throws(() => encodeCommand('x'), /Unsupported Tumbller command/);
   assert.throws(() => encodeCommand('ff'), /Unsupported Tumbller command/);

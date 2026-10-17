@@ -11,7 +11,12 @@ StatusLeds::StatusLeds()
       animation_index(0),
       abort_check_(nullptr),
       blink_phase_(0),
-      blink_prev_millis_(0) {
+      blink_prev_millis_(0),
+      glow_active_(false),
+      glow_color_(0),
+      glow_level_(24),
+      glow_step_(3),
+      glow_prev_millis_(0) {
   memset(led_on_, 0, sizeof(led_on_));
   memset(led_off_, 0, sizeof(led_off_));
 }
@@ -26,11 +31,13 @@ void StatusLeds::init(AbortCheckFn abort_check) {
 // --- Indicator patterns ---
 
 void StatusLeds::lightOff() {
+  glow_active_ = false;
   memset(led_on_, 0, sizeof(led_on_));
   memset(led_off_, 0, sizeof(led_off_));
 }
 
 void StatusLeds::solid(uint32_t color) {
+  glow_active_ = false;
   for (uint8_t i = 0; i < NUMPIXELS; i++) {
     led_on_[i] = color;
     led_off_[i] = color;
@@ -38,6 +45,7 @@ void StatusLeds::solid(uint32_t color) {
 }
 
 void StatusLeds::flash(uint32_t color, LedDirection dir) {
+  glow_active_ = false;
   memset(led_on_, 0, sizeof(led_on_));
   memset(led_off_, 0, sizeof(led_off_));
 
@@ -65,7 +73,43 @@ void StatusLeds::flash(uint32_t color, LedDirection dir) {
   }
 }
 
+void StatusLeds::glow(uint32_t color) {
+  glow_active_ = true;
+  glow_color_ = color;
+  glow_level_ = 24;
+  glow_step_ = 3;
+  glow_prev_millis_ = 0;
+}
+
 void StatusLeds::blink(uint32_t interval) {
+  if (glow_active_) {
+    if (millis() - glow_prev_millis_ < 16)
+      return;
+    glow_prev_millis_ = millis();
+
+    int16_t next_level = static_cast<int16_t>(glow_level_) + glow_step_;
+    if (next_level >= 255) {
+      next_level = 255;
+      glow_step_ = -3;
+    } else if (next_level <= 24) {
+      next_level = 24;
+      glow_step_ = 3;
+    }
+    glow_level_ = static_cast<uint8_t>(next_level);
+
+    const uint8_t red = (glow_color_ >> 16) & 0xFF;
+    const uint8_t green = (glow_color_ >> 8) & 0xFF;
+    const uint8_t blue = glow_color_ & 0xFF;
+    const uint8_t scaled_red = static_cast<uint16_t>(red) * glow_level_ / 255;
+    const uint8_t scaled_green = static_cast<uint16_t>(green) * glow_level_ / 255;
+    const uint8_t scaled_blue = static_cast<uint16_t>(blue) * glow_level_ / 255;
+    const uint32_t color = Color(scaled_red, scaled_green, scaled_blue);
+    for (uint8_t i = 0; i < NUMPIXELS; i++)
+      setPixelColor(i, color);
+    show();
+    return;
+  }
+
   if ((millis() - blink_prev_millis_ < interval) && (blink_phase_ == 0)) {
     blink_phase_ = 1;
     for (uint8_t i = 0; i < NUMPIXELS; i++)
