@@ -20,6 +20,13 @@ test('glow mode is exposed as the dedicated g firmware command', () => {
   assert.deepEqual([...encodeCommand(COMMANDS.glow)], ['g'.charCodeAt(0)]);
 });
 
+test('speed controls expose dedicated slower and faster firmware commands', () => {
+  assert.equal(COMMANDS.slower, '-');
+  assert.equal(COMMANDS.faster, '+');
+  assert.deepEqual([...encodeCommand(COMMANDS.slower)], ['-'.charCodeAt(0)]);
+  assert.deepEqual([...encodeCommand(COMMANDS.faster)], ['+'.charCodeAt(0)]);
+});
+
 test('encodeCommand rejects commands outside the firmware protocol', () => {
   assert.throws(() => encodeCommand('x'), /Unsupported Tumbller command/);
   assert.throws(() => encodeCommand('ff'), /Unsupported Tumbller command/);

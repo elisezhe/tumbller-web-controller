@@ -14,6 +14,10 @@ const uint32_t kStartSettleMs = 2000;     // START -> STANDBY settling timeout
 const uint32_t kStartDebounceMs = 500;    // debounce for manual start command
 const int16_t kDefaultBrightness = 50;    // LED brightness on reset
 const int16_t kBrightnessStep = 25;       // brightness increment/decrement
+const int16_t kDefaultDriveSpeed = 80;    // default Bluetooth speed target
+const int16_t kDriveSpeedStep = 20;       // speed adjustment per command
+const int16_t kMinDriveSpeed = 40;        // conservative stable lower bound
+const int16_t kMaxDriveSpeed = 120;       // conservative stable upper bound
 const uint8_t kStandUpSpeed = 110;        // motor PWM for stand-up maneuver
 const int8_t kStandUpAngleRef = 30;       // reference angle for stand-up duration
 const uint8_t kStandUpDivisor = 8;        // duration scaling divisor
@@ -51,7 +55,8 @@ Tumbller::Tumbller()
       auto_started_(false),
       stand_up_active_(false),
       stand_up_start_(0),
-      stand_up_duration_(0) {
+      stand_up_duration_(0),
+      bluetooth_drive_speed_(kDefaultDriveSpeed) {
   tumbller_instance_ = this;
 }
 
@@ -165,12 +170,23 @@ void Tumbller::setMotionState() {
     case TURNRIGHT: {
       const uint8_t mi = static_cast<uint8_t>(state.motion_mode) - 1;
       const uint8_t fi = static_cast<uint8_t>(state.function_mode);
-      SpeedProfile p;
-      memcpy_P(&p, &speed_profiles[mi][fi], sizeof(p));
-      if (p.speed != KEEP)
-        car.setting_car_speed = p.speed;
-      if (p.turn != KEEP)
-        car.setting_turn_speed = p.turn;
+      if (state.function_mode == BLUETOOTH) {
+        if (state.motion_mode == FORWARD)
+          car.setting_car_speed = bluetooth_drive_speed_;
+        else if (state.motion_mode == BACKWARD)
+          car.setting_car_speed = -bluetooth_drive_speed_;
+        else if (state.motion_mode == TURNLEFT)
+          car.setting_turn_speed = bluetooth_drive_speed_;
+        else if (state.motion_mode == TURNRIGHT)
+          car.setting_turn_speed = -bluetooth_drive_speed_;
+      } else {
+        SpeedProfile p;
+        memcpy_P(&p, &speed_profiles[mi][fi], sizeof(p));
+        if (p.speed != KEEP)
+          car.setting_car_speed = p.speed;
+        if (p.turn != KEEP)
+          car.setting_turn_speed = p.turn;
+      }
       break;
     }
     case STANDBY:
@@ -254,6 +270,14 @@ void Tumbller::keyEventHandle() {
         leds.setBrightness(leds.brightness);
       }
       leds.glow(StatusLeds::Color(255, 96, 0));
+      break;
+
+    // Bluetooth drive speed control
+    case '-':
+      adjustDriveSpeed(-kDriveSpeedStep);
+      break;
+    case '+':
+      adjustDriveSpeed(kDriveSpeedStep);
       break;
 
     // Self-right maneuver
@@ -365,6 +389,10 @@ void Tumbller::adjustBrightness(int16_t delta) {
   leds.brightness = constrain(leds.brightness + delta, 0, 255);
   leds.setBrightness(leds.brightness);
   leds.show();
+}
+
+void Tumbller::adjustDriveSpeed(int16_t delta) {
+  bluetooth_drive_speed_ = constrain(bluetooth_drive_speed_ + delta, kMinDriveSpeed, kMaxDriveSpeed);
 }
 
 void Tumbller::obstacleAvoidance() {

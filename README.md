@@ -94,7 +94,7 @@ BLE protocol:
 - **Stand-up recovery** — Non-blocking motor burst to flip the robot upright
   when fallen, with duration proportional to tilt angle
 - **Bluetooth control** — Serial commands for directional driving, mode
-  selection, and LED brightness
+  selection, adjustable drive speed, and LED brightness
 - **LED animations** — Solid, flash, fade, and breathing patterns on
   WS2812B LEDs with configurable brightness
 - **Low-voltage protection** — Automatic cutoff when battery voltage is low
@@ -110,6 +110,7 @@ BLE protocol:
 | `2` | Obstacle avoidance mode |
 | `3` | Cycle LED animation |
 | `g` | Amber breathing glow mode |
+| `-` / `+` | Decrease / Increase Bluetooth drive speed (40–120) |
 | `4` | Stand-up maneuver |
 | `5` | Startup / re-initialize balance |
 | `6` | Reset LED brightness |

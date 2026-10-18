@@ -40,6 +40,7 @@ class Tumbller {
   void standUp();
   void standUpUpdate();
   void adjustBrightness(int16_t delta);
+  void adjustDriveSpeed(int16_t delta);
 
   bool behavior_ready_;
   uint32_t behavior_start_time_;
@@ -48,6 +49,7 @@ class Tumbller {
   bool stand_up_active_;
   uint32_t stand_up_start_;
   uint32_t stand_up_duration_;
+  int16_t bluetooth_drive_speed_;
 };
 
 #endif

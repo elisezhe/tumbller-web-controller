@@ -13,6 +13,8 @@ export const COMMANDS = Object.freeze({
   obstacle: '2',
   cycleLights: '3',
   glow: 'g',
+  slower: '-',
+  faster: '+',
   standUp: '4',
   initialize: '5',
   resetBrightness: '6',
